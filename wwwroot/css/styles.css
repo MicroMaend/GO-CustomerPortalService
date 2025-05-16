@@ -20,8 +20,14 @@ body {
 }
 
 header img {
-    height: 100px;
+    height: 100px; /* Beholder højden */
+    width: 100px; /* Sørger for, at billedet er kvadratisk */
+    border-radius: 50%; /* Gør billedet cirkulært */
+    border: 3px solid #f8f9fa; /* Tilføjer en border rundt om logoet */
+    object-fit: cover; /* Sikrer, at billedet fylder cirklen korrekt */
+    margin-left: 50px;
 }
+
 
 header input[type="text"] {
     width: 200%;
