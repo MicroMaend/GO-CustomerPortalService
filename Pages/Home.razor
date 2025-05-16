@@ -1,7 +1,116 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Auction House</PageTitle>
 
-<h1>Hello, world!</h1>
+<link href="css/styles.css" rel="stylesheet" />
 
-Welcome to your new app.
+<!-- Header -->
+<header>
+    <div>
+        <img src="/GO_Logo.png" alt="Auction House Logo" />
+    </div>
+    <div class="search-container">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" placeholder="Search for auctions..." class="inter-regular" />
+    </div>
+    <div>
+        <button class="inter-bold">Create Account</button>
+        <button class="register inter-bold">Register</button>
+    </div>
+</header>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar">
+        <div class="categories">
+            <a href="/category/art" class="crimson-text-bold">
+                <span class="material-symbols-outlined">palette</span> <!-- Ikon for kunst -->
+                 Art
+            </a>
+            <a href="/category/jewelry" class="crimson-text-bold">
+                <span class="material-symbols-outlined">diamond</span> <!-- Ikon for smykker -->
+                Jewelry
+            </a>
+            <a href="/category/furniture" class="crimson-text-bold">
+                <span class="material-symbols-outlined">weekend</span> <!-- Ikon for møbler -->
+                Furniture
+            </a>
+            <a href="/category/antiques" class="crimson-text-bold">
+                <span class="material-symbols-outlined">history_edu</span> <!-- Ikon for antikviteter -->
+                Antiques
+            </a>
+            <a href="/category/electronics" class="crimson-text-bold">
+                <span class="material-symbols-outlined">devices</span> <!-- Ikon for elektronik -->
+                Electronics
+            </a>
+            <a href="/category/books" class="crimson-text-bold">
+                <span class="material-symbols-outlined">menu_book</span> <!-- Ikon for bøger -->
+                Books
+            </a>
+            <a href="/category/vehicles" class="crimson-text-bold">
+                <span class="material-symbols-outlined">directions_car</span> <!-- Ikon for køretøjer -->
+                Vehicles
+            </a>
+            <a href="/category/clothing" class="crimson-text-bold">
+                <span class="material-symbols-outlined">checkroom</span> <!-- Ikon for tøj -->
+                Clothing
+            </a>
+            <a href="/category/sports" class="crimson-text-bold">
+                <span class="material-symbols-outlined">sports_soccer</span> <!-- Ikon for sport -->
+                Sports
+            </a>
+            <a href="/category/music" class="crimson-text-bold">
+                <span class="material-symbols-outlined">music_note</span> <!-- Ikon for musik -->
+                Music
+            </a>
+            <a href="/category/photography" class="crimson-text-bold">
+                <span class="material-symbols-outlined">camera_alt</span> <!-- Ikon for fotografi -->
+                Photography
+            </a>
+        </div>
+    </div>
+
+    <div class="dropdown">
+        <button class="dropdown-button crimson-text-bold">
+            <span class="material-symbols-outlined">home</span>
+            Auction Houses
+        </button>
+        <div class="dropdown-content">
+            <a href="/auctionhouse/house1" class="crimson-text-regular">Grøn & Olsen</a>
+            <a href="/auctionhouse/house2" class="crimson-text-regular">Nordic Auctions</a>
+            <a href="/auctionhouse/house3" class="crimson-text-regular">Heritage Auctions</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main>
+    <section>
+        <h2 class="crimson-text-bold">Upcoming Auctions</h2>
+        <p class="crimson-text-regular">Stay tuned for the latest auctions coming soon!</p>
+    </section>
+
+    <section>
+        <h2 class="crimson-text-bold">Featured Auctions</h2>
+        <div>
+            <div>
+                <h3 class="crimson-text-semibold">Featured Auction 1</h3>
+                <p class="crimson-text-regular">Description of the auction.</p>
+            </div>
+            <div>
+                <h3 class="crimson-text-semibold">Featured Auction 2</h3>
+                <p class="crimson-text-regular">Description of the auction.</p>
+            </div>
+            <div>
+                <h3 class="crimson-text-semibold">Featured Auction 3</h3>
+                <p class="crimson-text-regular">Description of the auction.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer>
+    <p class="inter-regular">&copy; 2025 Grøn & Olsen. All rights reserved.</p>
+</footer>
+

@@ -1,0 +1,281 @@
+/* Header Styles */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #013220; /* Dark Green */
+    color: #f8f9fa; /* Light text for contrast */
+    width: 100%; /* Ensure it spans the full width */
+    position: fixed; /* Fix it to the top of the screen */
+    top: 0; /* Align to the top */
+    left: 0; /* Align to the left */
+    z-index: 1000; /* Ensure it stays above other elements */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+}
+
+header img {
+    height: 100px;
+}
+
+header input[type="text"] {
+    width: 200%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+header div:last-child button {
+    margin-right: 10px;
+}
+
+/* Button Styles */
+button {
+    background-color: #013220; /* Dark Green */
+    color: #f8f9fa; /* Light text */
+    border: 1px solid #f8f9fa; /* Light border for contrast */
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-family: 'Arial', sans-serif;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+    button:hover {
+        background-color: #f8f9fa; /* Light background on hover */
+        color: #013220; /* Dark green text on hover */
+        border: 1px solid #013220; /* Dark green border on hover */
+    }
+
+    /* Register Button Styles */
+    button.register {
+        background-color: #f8f9fa; /* White background */
+        color: #013220; /* Dark green text */
+        border: 1px solid #013220; /* Dark green border */
+    }
+
+        button.register:hover {
+            background-color: #d4af37; /* Gold background on hover */
+            color: #f8f9fa; /* White text on hover */
+            border: 1px solid #d4af37; /* Gold border on hover */
+        }
+
+/* Main Content Styles */
+main {
+    padding: 20px;
+    margin-top: 70px; /* For header */
+    margin-bottom: 50px; /* For footer */
+}
+
+section {
+    margin-top: 40px;
+}
+
+    section h2 {
+        margin-bottom: 10px;
+        color: #013220; /* Dark Green for headings */
+    }
+
+    section div {
+        display: flex;
+        gap: 20px;
+    }
+
+        section div > div {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 30%;
+        }
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #013220; /* Dark Green */
+    color: #f8f9fa; /* Light text */
+    position: fixed; /* Fix it to the bottom of the screen */
+    bottom: 0; /* Align to the bottom */
+    left: 0; /* Align to the left */
+    width: 100%; /* Ensure it spans the full width */
+    z-index: 1000; /* Ensure it stays above other elements */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Navbar Styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff; /* White background */
+    padding: 10px 20px;
+    color: #000000; /* Black text */
+    box-sizing: border-box;
+    margin-top:10px;
+}
+
+    .navbar .categories {
+        display: flex; /* Arrange categories horizontally */
+        gap: 10px; /* Add spacing between categories */
+
+    }
+
+        .navbar .categories a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #000000; /* Black text */
+            font-size: 14px;
+            background-color: #ffffff; /* White background */
+            border: 1px solid #ccc; /* Add border around each category */
+            border-radius: 4px; /* Optional: Add rounded corners */
+            padding: 8px 16px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+            .navbar .categories a img {
+                height: 20px;
+                margin-right: 8px; /* Add spacing between icon and text */
+            }
+
+            .navbar .categories a:hover {
+                background-color: #f0f0f0; /* Light gray background on hover */
+                color: #013220; /* Dark green text on hover */
+                border-color: #013220; /* Dark green border on hover */
+            }
+
+    /* Dropdown Styles */
+    .navbar .dropdown {
+        position: relative;
+    }
+
+    .navbar .dropdown-button {
+        background-color: #ffffff; /* White background */
+        color: #000000; /* Black text */
+        border: 1px solid #ccc; /* Add border */
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+
+    }
+
+        .navbar .dropdown-button:hover {
+            background-color: #f0f0f0; /* Light gray background on hover */
+            color: #013220; /* Dark green text on hover */
+            border-color: #013220; /* Dark green border on hover */
+        }
+
+    .navbar .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: #ffffff; /* White background */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+        .navbar .dropdown-content a {
+            display: block;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #000000; /* Black text */
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+            .navbar .dropdown-content a:hover {
+                background-color: #f0f0f0; /* Light gray background on hover */
+                color: #013220; /* Dark green text on hover */
+            }
+
+    .navbar .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+/* Search Container Styles */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 300px; /* Juster bredden efter behov */
+}
+
+    .search-container .material-symbols-outlined {
+        position: absolute;
+        left: 10px; /* Afstand fra venstre kant */
+        font-size: 20px; /* Størrelse på ikonet */
+        color: #888; /* Farve på ikonet */
+    }
+
+    .search-container input[type="text"] {
+        width: 100%;
+        padding: 8px 8px 8px 36px; /* Giver plads til ikonet */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+.inter-regular {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.inter-bold {
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.crimson-text-regular {
+    font-family: "Crimson Text", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.crimson-text-semibold {
+    font-family: "Crimson Text", serif;
+    font-weight: 600;
+    font-style: normal;
+}
+
+.crimson-text-bold {
+    font-family: "Crimson Text", serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.crimson-text-regular-italic {
+    font-family: "Crimson Text", serif;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.crimson-text-semibold-italic {
+    font-family: "Crimson Text", serif;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.crimson-text-bold-italic {
+    font-family: "Crimson Text", serif;
+    font-weight: 700;
+    font-style: italic;
+}
+
+
+
+
