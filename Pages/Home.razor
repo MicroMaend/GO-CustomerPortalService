@@ -1,8 +1,10 @@
 ﻿@page "/"
 
-<PageTitle>Auction House</PageTitle>
+<PageTitle>Grøn & Olsen</PageTitle>
 
 <link href="css/styles.css" rel="stylesheet" />
+
+
 
 <!-- Header -->
 <header>
@@ -67,46 +69,111 @@
                 <span class="material-symbols-outlined">camera_alt</span> <!-- Ikon for fotografi -->
                 Photography
             </a>
+
+            <div class="dropdown">
+                <button class="dropdown-button crimson-text-bold">
+                    <span class="material-symbols-outlined">home</span>
+                    Auction Houses
+                </button>
+                <div class="dropdown-content">
+                    <a href="/auctionhouse/house1" class="crimson-text-regular">Grøn & Olsen</a>
+                    <a href="/auctionhouse/house2" class="crimson-text-regular">Nordic Auctions</a>
+                    <a href="/auctionhouse/house3" class="crimson-text-regular">Heritage Auctions</a>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="dropdown">
-        <button class="dropdown-button crimson-text-bold">
-            <span class="material-symbols-outlined">home</span>
-            Auction Houses
-        </button>
-        <div class="dropdown-content">
-            <a href="/auctionhouse/house1" class="crimson-text-regular">Grøn & Olsen</a>
-            <a href="/auctionhouse/house2" class="crimson-text-regular">Nordic Auctions</a>
-            <a href="/auctionhouse/house3" class="crimson-text-regular">Heritage Auctions</a>
-        </div>
-    </div>
+    
 </nav>
 
 <!-- Main Content -->
 <main>
-    <section>
-        <h2 class="crimson-text-bold">Upcoming Auctions</h2>
-        <p class="crimson-text-regular">Stay tuned for the latest auctions coming soon!</p>
-    </section>
-
-    <section>
+    <section class="auction-slider">
         <h2 class="crimson-text-bold">Featured Auctions</h2>
-        <div>
-            <div>
-                <h3 class="crimson-text-semibold">Featured Auction 1</h3>
-                <p class="crimson-text-regular">Description of the auction.</p>
+        <div class="slider-container">
+            <button class="slider-arrow left-arrow" onclick="moveSlide(-1)">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div class="slider">
+                <div class="slide">
+                    <img src="/images/featuredauction_example1.jpg" alt="Designer Chair">
+                    <div class="slide-content">
+                        <h3>Designer Chair</h3>
+                        <p>Experience the elegance of modern design with this exclusive designer chair.</p>
+                        <button>Explore now</button>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="/images/featuredauction_example2.jpg" alt="Painting">
+                    <div class="slide-content">
+                        <h3>Painting</h3>
+                        <p>Own a masterpiece! This stunning painting will elevate any space.</p>
+                        <button>Explore now</button>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="/images/featuredauction_example3.jpg" alt="Vintage Electric Guitar">
+                    <div class="slide-content">
+                        <h3>Vintage Electric Guitar</h3>
+                        <p>Strum the strings of history with this rare vintage electric guitar.</p>
+                        <button>Explore now</button>
+                    </div>
+                </div>
             </div>
-            <div>
-                <h3 class="crimson-text-semibold">Featured Auction 2</h3>
-                <p class="crimson-text-regular">Description of the auction.</p>
+
+            <!-- Flyt slider-dots her -->
+            <div class="slider-dots">
+                <span class="dot active" onclick="goToSlide(0)"></span>
+                <span class="dot" onclick="goToSlide(1)"></span>
+                <span class="dot" onclick="goToSlide(2)"></span>
             </div>
-            <div>
-                <h3 class="crimson-text-semibold">Featured Auction 3</h3>
-                <p class="crimson-text-regular">Description of the auction.</p>
+
+            <button class="slider-arrow right-arrow" onclick="moveSlide(1)">
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+        </div>
+
+    </section>
+    
+
+    <section class="upcoming-auctions">
+        <h2 class="crimson-text-bold">Upcoming Auctions</h2>
+        <div class="upcoming-auctions-container">
+            <div class="auction-card">
+                <img src="/images/upcoming_auction1.jpg" alt="Antique Vase">
+                <div class="auction-card-content">
+                    <h3 class="crimson-text-semibold">Antique Vase</h3>
+                    <p class="crimson-text-regular">A rare 18th-century vase in pristine condition.</p>
+                    <p class="auction-timer crimson-text-regular" data-start-time="2025-12-01T15:00:00">Beginning in: <span>Loading...</span></p>
+                </div>
+                <button class="auction-card-button">View Auction</button>
+            </div>
+
+            <div class="auction-card">
+                <img src="/images/upcoming_auction2.jpg" alt="Luxury Watch">
+                <div class="auction-card-content">
+                    <h3 class="crimson-text-semibold">Luxury Watch</h3>
+                    <p class="crimson-text-regular">A timeless piece from a renowned Swiss brand.</p>
+                    <p class="auction-timer crimson-text-regular" data-start-time="2025-12-01T15:00:00">Beginning in: <span>Loading...</span></p>
+                </div>
+                <button class="auction-card-button">View Auction</button>
+            </div>
+            <div class="auction-card">
+                <img src="/images/upcoming_auction3.jpg" alt="Classic Car">
+                <div class="auction-card-content">
+                    <h3 class="crimson-text-semibold">Classic Car</h3>
+                    <p class="crimson-text-regular">A beautifully restored 1960s classic car.</p>
+                    <p class="auction-timer crimson-text-regular" data-start-time="2025-12-01T15:00:00">Beginning in: <span>Loading...</span></p>
+                </div>
+                <button class="auction-card-button">View Auction</button>
             </div>
         </div>
     </section>
+
+    <script src="js/slider.js"></script>
+    <script src="js/timer.js"></script>
 </main>
 
 <!-- Footer -->
