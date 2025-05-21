@@ -1,29 +1,27 @@
-# --- Base image for runtime ---
+# Base image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 
-# --- Build stage ---
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Kopiér kun det nødvendige først
-COPY GO-CustomerPortalService.csproj ./
+# Copy csproj og nuget konfiguration
 COPY nuget.config ./
 COPY nuget-packages ./nuget-packages
+COPY GO-CustomerPortalService/GO-CustomerPortalService.csproj GO-CustomerPortalService/
 
-# Restore med lokal nuget-mappe
-RUN dotnet restore "GO-CustomerPortalService.csproj" --configfile ./nuget.config
+# Restore using local NuGet source
+RUN dotnet restore "GO-CustomerPortalService/GO-CustomerPortalService.csproj" --configfile ./nuget.config
 
-# Kopiér resten af projektet
+# Copy the rest of the code
 COPY . .
 
-# Byg og publicer
-WORKDIR /src
+# Build og publish
+WORKDIR /src/GO-CustomerPortalService
 RUN dotnet build GO-CustomerPortalService.csproj -c Release -o /app/build
 RUN dotnet publish GO-CustomerPortalService.csproj -c Release -o /app/publish
 
-# --- Final image ---
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
