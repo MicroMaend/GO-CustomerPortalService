@@ -13,12 +13,13 @@ COPY nuget.config ./
 COPY nuget-packages ./nuget-packages
 
 # Restore med lokal nuget-mappe
-RUN dotnet restore GO-CustomerPortalService.csproj --configfile ./nuget.config
+RUN dotnet restore "GO-CustomerPortalService.csproj" --configfile ./nuget.config
 
 # Kopiér resten af projektet
 COPY . .
 
 # Byg og publicer
+WORKDIR /src
 RUN dotnet build GO-CustomerPortalService.csproj -c Release -o /app/build
 RUN dotnet publish GO-CustomerPortalService.csproj -c Release -o /app/publish
 
