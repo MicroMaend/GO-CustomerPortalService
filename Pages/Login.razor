@@ -1,0 +1,76 @@
+﻿@page "/login"
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Grøn & Olsen</PageTitle>
+
+<head>
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+
+
+<div class="login-container">
+    <h3 class="crimson-text-bold">Login</h3>
+    <div class="form-group">
+        <label>Username</label>
+        <input class="form-control" @bind="username" placeholder="Enter username" />
+    </div>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" class="form-control" @bind="password" placeholder="Enter password" />
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary" @onclick="LoginUser">Login</button>
+        <button class="btn btn-secondary" @onclick="NavigateToCreateAccount">Create Account</button>
+    </div>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+</div>
+
+
+
+
+@code {
+    private string username = string.Empty;
+    private string password = string.Empty;
+    private string errorMessage;
+
+    private async Task LoginUser()
+    {
+        try
+        {
+            var loginRequest = new { Username = username, Password = password };
+            var response = await Http.PostAsJsonAsync("auth/login", loginRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var token = await response.Content.ReadAsStringAsync();
+                await localStorage.SetItemAsync("authToken", token);
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Invalid username or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Login failed: {ex.Message}";
+        }
+    }
+
+    private void NavigateToCreateAccount()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+
+    private void ToHomePage()
+    {
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+}

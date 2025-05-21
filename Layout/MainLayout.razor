@@ -1,8 +1,66 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+
 <div class="page">
+
+    <header>
+        <div>
+            <a href="/">
+            <img src="/GO_Logo.png" alt="Auction House Logo" />
+            </a>
+        </div>
+        <div class="search-container">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Search for auctions..." class="inter-regular" />
+        </div>
+        <div>
+            <button @onclick="ToLogin" class="inter-bold">Login</button>
+            <button @onclick="ToRegister" class="register inter-bold">Register</button>
+        </div>
+    </header>
+
     <main>
         <article class="content px-4">
             @Body
         </article>
     </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-left">
+                <p class="inter-regular">&copy; 2025 Grøn & Olsen. All rights reserved.</p>
+            </div>
+            <div class="footer-right">
+                <p class="inter-regular">
+                    <a href="/terms" class="footer-link">Vilkår</a> |
+                    <a href="/privacy" class="footer-link">Privatlivspolitik</a> |
+                    <a href="/contact" class="footer-link">Kontakt</a>
+                </p>
+            </div>
+        </div>
+        <div class="social-icons">
+            <a href="https://www.linkedin.com" target="_blank" class="social-icon" aria-label="LinkedIn">
+                <i class="bi bi-linkedin"></i>
+            </a>
+            <a href="https://www.instagram.com" target="_blank" class="social-icon" aria-label="Instagram">
+                <i class="bi bi-instagram"></i>
+            </a>
+            <a href="https://www.facebook.com" target="_blank" class="social-icon" aria-label="Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+        </div>
+    </footer>
 </div>
+
+@code {
+    private void ToLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private void ToRegister()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+}

@@ -1,0 +1,156 @@
+﻿@page "/search"
+@inject NavigationManager NavigationManager
+@using GOCore
+@inject IAuctionService AuctionService
+
+
+<PageTitle>Søg Auktioner – Grøn & Olsen</PageTitle>
+
+<link href="css/search.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+
+<div class="search-layout">
+    <!-- VENSTREMENU -->
+    <aside class="sidebar">
+        <h4>Kategorier</h4>
+        <ul>
+            <li @onclick="@(() => selectedCategory = "")" class="@((selectedCategory == "") ? "active" : "")">Alle kategorier</li>
+            @foreach (var category in categories)
+            {
+                <li @onclick="@(() => selectedCategory = category)" class="@((selectedCategory == category) ? "active" : "")">@category</li>
+            }
+        </ul>
+
+        <h4 style="margin-top: 2rem;">Auktionshuse</h4>
+        <ul>
+            <li @onclick="@(() => selectedAuctionHouse = "")" class="@((selectedAuctionHouse == "") ? "active" : "")">Alle huse</li>
+            @foreach (var house in auctionHouses)
+            {
+                <li @onclick="@(() => selectedAuctionHouse = house)" class="@((selectedAuctionHouse == house) ? "active" : "")">@house</li>
+            }
+        </ul>
+    </aside>
+
+    <!-- HØJRE INHOLD -->
+    <main class="auction-content">
+        <div class="auction-header">
+            <h3 class="crimson-text-bold">Alle auktioner</h3>
+            <div class="sort-dropdown">
+                <label>Sortér efter:</label>
+                <select @bind="selectedSort">
+                    <option value="highestBid">Højeste bud</option>
+                    <option value="lowestBid">Laveste bud</option>
+                    <option value="endingSoon">Slutter snart</option>
+                    <option value="lowestEstimate">Laveste vurdering</option>
+                    <option value="highestEstimate">Højeste vurdering</option>
+                </select>
+                <button @onclick="ApplyFilters">Anvend</button>
+            </div>
+        </div>
+
+        <div class="results-grid">
+            @if (filteredAuctions.Any())
+            {
+                @foreach (var auction in filteredAuctions)
+                {
+                    <div class="auction-card" @onclick="@(() => NavigateToAuction(auction.Id))">
+                        <img src="@((auction.Item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@auction.Item.Name" />
+                        <div class="auction-details">
+                            <h4>@Shorten(auction.Item.Name, 45)</h4>
+                            <p class="time-left">@GetTimeLeft(auction.AuctionEnd)</p>
+                            <p class="price">@((auction.HighestBid?.Amount ?? 0).ToString("N0")) DKK</p>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Ingen auktioner matcher dine filtre.</p>
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private string selectedCategory = "";
+    private string selectedAuctionHouse = "";
+    private string selectedSort = "popular";
+
+    private List<string> categories = new();
+    private List<string> auctionHouses = new();
+
+    private List<Auction> allAuctions = new();
+    private List<Auction> filteredAuctions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        allAuctions = await AuctionService.GetAllAuctionsAsync();
+
+        categories = allAuctions
+            .Select(a => a.Item.Category)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct()
+            .ToList();
+
+        auctionHouses = allAuctions
+            .Select(a => GetAuctionHouseName(a))
+            .Distinct()
+            .ToList();
+
+        ApplyFilters();
+    }
+
+
+    private void NavigateToAuction(Guid id)
+    {
+        NavigationManager.NavigateTo($"/auction/{id}");
+    }
+
+    private void ApplyFilters()
+    {
+        filteredAuctions = allAuctions
+            .Where(a =>
+                (string.IsNullOrEmpty(selectedCategory) ||
+                 string.Equals(a.Item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(selectedAuctionHouse) ||
+                 GetAuctionHouseName(a).Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase))
+            )
+            .ToList();
+
+        filteredAuctions = selectedSort switch
+        {
+            "highestBid" => filteredAuctions.OrderByDescending(a => a.HighestBid?.Amount ?? 0).ToList(),
+            "lowestBid" => filteredAuctions.OrderBy(a => a.HighestBid?.Amount ?? 0).ToList(),
+            "endingSoon" => filteredAuctions.OrderBy(a => a.AuctionEnd).ToList(),
+            "lowestEstimate" => filteredAuctions.OrderBy(a => a.Item.Value).ToList(),
+            "highestEstimate" => filteredAuctions.OrderByDescending(a => a.Item.Value).ToList(),
+            _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList() // fallback fx til "ending soon"
+        };
+    }
+
+    private string GetAuctionHouseName(Auction a)
+    {
+        if (a.Item.Description.Contains("Grøn & Olsen", StringComparison.OrdinalIgnoreCase))
+            return "Grøn & Olsen";
+        if (a.Item.Description.Contains("Nord Auktion", StringComparison.OrdinalIgnoreCase))
+            return "Nord Auktion";
+        if (a.Item.Description.Contains("AntikVest", StringComparison.OrdinalIgnoreCase))
+            return "AntikVest";
+        return "Ukendt";
+    }
+
+    private string GetTimeLeft(DateTime endTime)
+    {
+        var span = endTime - DateTime.Now;
+        if (span.TotalSeconds <= 0) return "Auktionen er slut";
+        if (span.TotalMinutes < 1) return $"{span.Seconds} sek";
+        if (span.TotalHours < 1) return $"{span.Minutes} min";
+        if (span.TotalDays < 1) return $"{span.Hours}t {span.Minutes}m";
+        return $"{(int)span.TotalDays}d {span.Hours}t";
+    }
+
+    private string Shorten(string text, int max)
+    {
+        return string.IsNullOrEmpty(text) || text.Length <= max ? text : text.Substring(0, max) + "...";
+    }
+}

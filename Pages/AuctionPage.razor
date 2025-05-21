@@ -1,0 +1,97 @@
+﻿@page "/auction/{AuctionId:guid}"
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@using GOCore
+
+<PageTitle>Auktion – Grøn & Olsen</PageTitle>
+
+<link href="css/auction.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+
+@if (auction == null)
+{
+    <p>Indlæser auktion...</p>
+}
+else
+{
+    <div class="auctionpage-grid">
+        <div class="gallery-section">
+            <img class="main-image" src="@MainImage" alt="@auction.Item.Name" />
+            <div class="thumbnails">
+                @foreach (var img in auction.Item.Images)
+                {
+                    <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" @onclick="@(() => MainImage = img)" />
+                }
+            </div>
+        </div>
+
+        <div class="details-section">
+            <h1>@auction.Item.Name</h1>
+
+            <div class="price-timer">
+                <div>
+                    <p class="label">Højeste bud</p>
+                    <p class="price">@(auction.HighestBid?.Amount.ToString("N0") ?? "–") DKK</p>
+                </div>
+                <div>
+                    <p class="label">Slutter om</p>
+                    <p class="time">@GetTimeLeft(auction.AuctionEnd)</p>
+                </div>
+            </div>
+
+            <div class="bid-input">
+                <input type="number" min="@((auction.HighestBid?.Amount ?? 0) + 1)" placeholder="Indtast dit bud" />
+                <button class="bid-button">Byd nu</button>
+            </div>
+
+            <div class="meta">
+                <p><strong>Vurdering:</strong> @auction.Item.Value.ToString("N0") DKK</p>
+                <p><strong>Kategori:</strong> @auction.Item.Category</p>
+                <p><strong>Stand:</strong> @auction.Item.Condition</p>
+                <p><strong>Auktionshus:</strong> @GetAuctionHouseName(auction)</p>
+            </div>
+
+            <div class="description">
+                <h3>Beskrivelse</h3>
+                <p>@auction.Item.Description</p>
+            </div>
+        </div>
+    </div>
+
+}
+
+@code {
+    [Parameter]
+    public Guid AuctionId { get; set; }
+    private string MainImage;
+
+    private Auction auction;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Brug mockdata fra AuctionService
+        auction = AuctionService.GetById(AuctionId);
+        MainImage = auction.Item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
+    }
+
+    private string GetTimeLeft(DateTime endTime)
+    {
+        var span = endTime - DateTime.Now;
+        if (span.TotalSeconds <= 0) return "Auktionen er slut";
+        if (span.TotalMinutes < 1) return $"{span.Seconds} sek";
+        if (span.TotalHours < 1) return $"{span.Minutes} min";
+        if (span.TotalDays < 1) return $"{span.Hours}t {span.Minutes}m";
+        return $"{(int)span.TotalDays}d {span.Hours}t";
+    }
+
+    private string GetAuctionHouseName(Auction a)
+    {
+        if (a.Item.Description.Contains("Grøn & Olsen", StringComparison.OrdinalIgnoreCase))
+            return "Grøn & Olsen";
+        if (a.Item.Description.Contains("Nord Auktion", StringComparison.OrdinalIgnoreCase))
+            return "Nord Auktion";
+        if (a.Item.Description.Contains("AntikVest", StringComparison.OrdinalIgnoreCase))
+            return "AntikVest";
+        return "Ukendt";
+    }
+}

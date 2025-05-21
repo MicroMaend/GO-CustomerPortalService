@@ -1,0 +1,117 @@
+﻿.search-layout {
+    display: flex;
+    padding: 2rem;
+    gap: 2rem;
+    margin-bottom: 10rem;
+}
+
+.sidebar {
+    width: 240px;
+    background-color: #f0f0f0;
+    padding: 1rem;
+    border-radius: 10px;
+    font-family: "Crimson Text", serif;
+}
+
+    .sidebar h4 {
+        color: #013220;
+        font-size: 18px;
+        margin-bottom: 0.5rem;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar li {
+        padding: 0.5rem 0;
+        cursor: pointer;
+        font-size: 15px;
+        border-bottom: 1px solid #ddd;
+        color: #013220;
+    }
+
+        .sidebar li:hover,
+        .sidebar li.active {
+            font-weight: bold;
+            color: #d4af37;
+        }
+
+.auction-content {
+    flex: 1;
+}
+
+.auction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.sort-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.auction-card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: 0.2s;
+}
+
+    .auction-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: #d4af37;
+        cursor: pointer;
+    }
+
+    .auction-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+    }
+
+.auction-details {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-family: "Crimson Text", serif;
+}
+
+    .auction-details h4 {
+        font-size: 16px;
+        color: #013220;
+        margin: 0;
+    }
+
+    .auction-details .time-left {
+        font-size: 14px;
+        color: #b22222;
+    }
+
+    .auction-details .bids {
+        font-size: 14px;
+        color: #555;
+    }
+
+    .auction-details .price {
+        font-size: 16px;
+        font-weight: bold;
+        color: #198754; /* grøn pris */
+    }

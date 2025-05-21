@@ -1,0 +1,100 @@
+﻿@page "/register"
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Grøn & Olsen</PageTitle>
+
+<head>
+    <link rel="stylesheet" href="css/register.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<div class="register-container">
+    <h3 class="crimson-text-bold">Opret Bruger</h3>
+
+    <div class="form-group">
+        <label>Brugernavn</label>
+        <input class="form-control" @bind="user.UserName" placeholder="Indtast brugernavn" />
+    </div>
+    <div class="form-group">
+        <label>Adgangskode</label>
+        <input type="password" class="form-control" @bind="user.Password" placeholder="Indtast adgangskode" />
+    </div>
+    <div class="form-group">
+        <label>Fulde navn</label>
+        <input class="form-control" @bind="user.Name" placeholder="Indtast navn" />
+    </div>
+    <div class="form-group">
+        <label>Adresse</label>
+        <input class="form-control" @bind="user.Address" placeholder="Indtast adresse" />
+    </div>
+    <div class="form-group">
+        <label>Postnummer</label>
+        <input type="number" class="form-control" @bind="user.ZipCode" placeholder="Indtast postnummer" />
+    </div>
+    <div class="form-group">
+        <label>By</label>
+        <input class="form-control" @bind="user.City" placeholder="Indtast by" />
+    </div>
+    <div class="form-group">
+        <label>Telefonnummer</label>
+        <input type="number" class="form-control" @bind="user.PhoneNumber" placeholder="Indtast telefonnummer" />
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="form-control" @bind="user.Email" placeholder="Indtast email" />
+    </div>
+
+    <div class="form-group">
+        <button class="btn btn-primary" @onclick="RegisterUser">Opret Bruger</button>
+        <button class="btn btn-secondary" @onclick="GoBackToLogin">Tilbage til Login</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+</div>
+
+@code {
+    private UserModel user = new();
+    private string errorMessage;
+
+    private async Task RegisterUser()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("auth/register", user);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = "Noget gik galt under oprettelsen. Prøv igen.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fejl: {ex.Message}";
+        }
+    }
+
+    private void GoBackToLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private class UserModel
+    {
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public string Name { get; set; }
+        public string Address { get; set; }
+        public int ZipCode { get; set; }
+        public string City { get; set; }
+        public int PhoneNumber { get; set; }
+        public string Email { get; set; }
+    }
+}

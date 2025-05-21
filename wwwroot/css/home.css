@@ -1,0 +1,347 @@
+/* Navbar Styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff; /* White background */
+    padding: 10px 20px;
+    color: #000000; /* Black text */
+    box-sizing: border-box;
+    margin-top: 10px;
+    margin-bottom: 0; 
+    padding-bottom: 0;
+}
+
+    .navbar .categories {
+        display: flex; /* Arrange categories horizontally */
+        gap: 10px; /* Add spacing between categories */
+
+    }
+
+        .navbar .categories a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #000000; /* Black text */
+            font-size: 14px;
+            background-color: #ffffff; /* White background */
+            border: 1px solid #ccc; /* Add border around each category */
+            border-radius: 4px; /* Optional: Add rounded corners */
+            padding: 8px 16px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+            .navbar .categories a img {
+                height: 20px;
+                margin-right: 8px; /* Add spacing between icon and text */
+            }
+
+            .navbar .categories a:hover {
+                background-color: #f0f0f0; /* Light gray background on hover */
+                color: #013220; /* Dark green text on hover */
+                border-color: #013220; /* Dark green border on hover */
+            }
+
+    /* Dropdown Styles */
+    .navbar .dropdown {
+        position: relative;
+    }
+
+    .navbar .dropdown-button {
+        display: flex; /* Use flexbox for proper alignment */
+        align-items: center; /* Vertically align icon and text */
+        gap: 8px; /* Add spacing between the icon and text */
+        background-color: #013220; /* Dark green background */
+        color: white; /* White text */
+        border: 1px solid #ccc; /* Add border */
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+        .navbar .dropdown-button:hover {
+            background-color: #f0f0f0; /* Light gray background on hover */
+            color: #013220; /* Dark green text on hover */
+            border-color: #013220; /* Dark green border on hover */
+        }
+
+    .navbar .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: #ffffff; /* White background */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+        .navbar .dropdown-content a {
+            display: block;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #000000; /* Black text */
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+            .navbar .dropdown-content a:hover {
+                background-color: #f0f0f0; /* Light gray background on hover */
+                color: #013220; /* Dark green text on hover */
+            }
+
+    .navbar .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+
+
+/* Slider Container */
+.auction-slider {
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* Slider container */
+.slider-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    border: 4px solid #013220; /* Tilføjer en mørkegrøn border */
+    border-radius: 4px;
+}
+
+/* Slider wrapper */
+.slider {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
+
+/* Enkelt slide */
+.slide {
+    min-width: 100%;
+    height: 400px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Billedet i sliden */
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* Sort overlay */
+.slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+/* Tekstindhold */
+.slide-content {
+    color: white;
+    text-align: left;
+    padding: 20px;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: absolute;
+    left: 40px;
+    bottom: 20px;
+    z-index: 2;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+/* Overskrift */
+.slide-content h3 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Beskrivelse */
+.slide-content p {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Knap */
+.slide-content button {
+    background-color: #d4af37;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    align-self: flex-start;
+}
+
+.slide-content button:hover {
+    background-color: #b8860b;
+    color: white;
+}
+
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 50%; /* Gør pilene runde */
+    width: 40px; /* Ens bredde */
+    height: 40px; /* Ens højde */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-dots {
+    position: absolute; /* Gør det muligt at placere prikkerne ovenpå slideren */
+    bottom: 20px; /* Flytter prikkerne lidt op fra bunden af slideren */
+    left: 50%; /* Centrerer prikkerne horisontalt */
+    transform: translateX(-50%); /* Justerer for centreret position */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* Sørger for, at prikkerne vises foran baggrundsbilledet */
+    border: none;
+}
+
+    .slider-dots .dot {
+        width: 12px;
+        height: 12px;
+        margin: 0 5px;
+        background-color: rgba(255, 255, 255, 0.7); /* Gør prikkerne lidt gennemsigtige */
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .slider-dots .dot.active {
+            background-color: #013220; /* Fremhæv den aktive prik */
+        }
+
+
+.left-arrow {
+    left: 20px;
+}
+
+.right-arrow {
+    right: 20px;
+}
+
+.upcoming-auctions {
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 50px auto;
+    overflow: hidden;
+}
+
+.upcoming-auctions-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.auction-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 400px; /* Adjusted width for horizontal layout */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .auction-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+.auction-card-content {
+    display: flex;
+    flex-direction: row; /* Make content horizontal */
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+}
+
+    .auction-card-content h3 {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .auction-card-content p {
+        font-size: 14px;
+        color: #555;
+        margin: 0;
+        flex-grow: 1;
+        padding-left: 10px;
+    }
+
+.auction-card-button {
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    align-self: flex-start; /* Align button to the left */
+}
+
+    
+
+
+
+
+
+
+
