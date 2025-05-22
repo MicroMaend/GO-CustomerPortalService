@@ -4,7 +4,7 @@ using GOCore;
 public class AuctionHttpService : IAuctionService
 {
     private readonly HttpClient _http;
-    private const string baseUrl = "https://go-auctionservice";
+    private const string baseUrl = "localhost:5003";
 
     public AuctionHttpService(HttpClient http)
     {
