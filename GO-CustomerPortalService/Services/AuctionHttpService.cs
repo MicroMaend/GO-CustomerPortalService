@@ -4,7 +4,7 @@ using GOCore;
 public class AuctionHttpService : IAuctionService
 {
     private readonly HttpClient _http;
-    private const string baseUrl = "https://go-auctionservice";
+    private const string baseUrl = "http://localhost:5003";
 
     public AuctionHttpService(HttpClient http)
     {
@@ -13,8 +13,16 @@ public class AuctionHttpService : IAuctionService
 
     public async Task<List<Auction>> GetAllAuctionsAsync()
     {
-        var response = await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction");
-        return response ?? new List<Auction>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction");
+            return response ?? new List<Auction>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching auctions: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<Auction?> GetByIdAsync(Guid id)
