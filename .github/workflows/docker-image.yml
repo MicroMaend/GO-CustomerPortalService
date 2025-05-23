@@ -32,6 +32,9 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: List files in build context
+        run: ls -R .
+
       - name: Build the Docker image
         run: |
           docker build . -f GO-CustomerPortalService/Dockerfile \
