@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-
-
 <div class="login-container">
     <h3 class="crimson-text-bold">Login</h3>
     <div class="form-group">
@@ -32,9 +30,6 @@
     }
 </div>
 
-
-
-
 @code {
     private string username = string.Empty;
     private string password = string.Empty;
@@ -45,7 +40,7 @@
         try
         {
             var loginRequest = new { Username = username, Password = password };
-            var response = await Http.PostAsJsonAsync("/auth/login", loginRequest);
+            var response = await Http.PostAsJsonAsync("/api/auth/login", loginRequest); // Ændret stien her
 
             if (response.IsSuccessStatusCode)
             {
