@@ -51,14 +51,14 @@
         <div class="results-grid">
             @if (filteredAuctions.Any())
             {
-                @foreach (var auction in filteredAuctions)
+                @foreach (var auctionViewModel in filteredAuctions)
                 {
-                    <div class="auction-card" @onclick="@(() => NavigateToAuction(auction.Id))">
-                        <img src="@((auction.Item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@auction.Item.Name" />
+                    <div class="auction-card" @onclick="@(() => NavigateToAuction(auctionViewModel.Auction.Id))">
+                        <img src="@((auctionViewModel.Item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@auctionViewModel.Item.Name" />
                         <div class="auction-details">
-                            <h4>@Shorten(auction.Item.Name, 45)</h4>
-                            <p class="time-left">@GetTimeLeft(auction.AuctionEnd)</p>
-                            <p class="price">@((auction.HighestBid?.Amount ?? 0).ToString("N0")) DKK</p>
+                            <h4>@Shorten(auctionViewModel.Item.Name, 45)</h4>
+                            <p class="time-left">@GetTimeLeft(auctionViewModel.Auction.AuctionEnd)</p>
+                            <p class="price">@((auctionViewModel.CurrentHighestBid).ToString("N0")) DKK</p>
                         </div>
                     </div>
                 }
@@ -79,8 +79,8 @@
     private List<string> categories = new();
     private List<string> auctionHouses = new();
 
-    private List<Auction> allAuctions = new();
-    private List<Auction> filteredAuctions = new();
+    private List<allAuctionsViewModel> allAuctions = new();
+    private List<allAuctionsViewModel> filteredAuctions = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,7 +93,7 @@
             .ToList();
 
         auctionHouses = allAuctions
-            .Select(a => GetAuctionHouseName(a))
+            .Select(a => GetAuctionHouseName(a.Item))
             .Distinct()
             .ToList();
 
@@ -113,29 +113,29 @@
                 (string.IsNullOrEmpty(selectedCategory) ||
                  string.Equals(a.Item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase)) &&
                 (string.IsNullOrEmpty(selectedAuctionHouse) ||
-                 GetAuctionHouseName(a).Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase))
+                 GetAuctionHouseName(a.Item).Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase))
             )
             .ToList();
 
         filteredAuctions = selectedSort switch
         {
-            "highestBid" => filteredAuctions.OrderByDescending(a => a.HighestBid?.Amount ?? 0).ToList(),
-            "lowestBid" => filteredAuctions.OrderBy(a => a.HighestBid?.Amount ?? 0).ToList(),
-            "endingSoon" => filteredAuctions.OrderBy(a => a.AuctionEnd).ToList(),
+            "highestBid" => filteredAuctions.OrderByDescending(a => a.CurrentHighestBid).ToList(),
+            "lowestBid" => filteredAuctions.OrderBy(a => a.CurrentHighestBid).ToList(),
+            "endingSoon" => filteredAuctions.OrderBy(a => a.Auction.AuctionEnd).ToList(),
             "lowestEstimate" => filteredAuctions.OrderBy(a => a.Item.Value).ToList(),
             "highestEstimate" => filteredAuctions.OrderByDescending(a => a.Item.Value).ToList(),
-            _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList() // fallback fx til "ending soon"
+            _ => filteredAuctions.OrderByDescending(a => a.Auction.AuctionEnd).ToList() // fallback fx til "ending soon"
         };
     }
 
-    private string GetAuctionHouseName(Auction a)
+    private string GetAuctionHouseName(Item a)
     {
-        if (a.Item.Description.Contains("Grøn & Olsen", StringComparison.OrdinalIgnoreCase))
+       /* if (a.AuctionHouseId.Description.Contains("Grøn & Olsen", StringComparison.OrdinalIgnoreCase))
             return "Grøn & Olsen";
         if (a.Item.Description.Contains("Nord Auktion", StringComparison.OrdinalIgnoreCase))
             return "Nord Auktion";
         if (a.Item.Description.Contains("AntikVest", StringComparison.OrdinalIgnoreCase))
-            return "AntikVest";
+            return "AntikVest";*/
         return "Ukendt";
     }
 

@@ -2,6 +2,6 @@
 
 public interface IAuctionService
 {
-    Task<List<Auction>> GetAllAuctionsAsync();
+    Task<List<allAuctionsViewModel>> GetAllAuctionsAsync();
     Task<Auction?> GetByIdAsync(Guid id);
 }
