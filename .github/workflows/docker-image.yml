@@ -35,6 +35,9 @@ jobs:
       - name: List files in build context
         run: ls -R .
 
+      - name: Print current working directory
+        run: pwd
+
       - name: Build the Docker image
         run: |
           docker build . -f GO-CustomerPortalService/Dockerfile \
