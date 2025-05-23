@@ -45,7 +45,7 @@
         try
         {
             var loginRequest = new { Username = username, Password = password };
-            var response = await Http.PostAsJsonAsync("localhost:5004/auth/login", loginRequest);
+            var response = await Http.PostAsJsonAsync("/auth/login", loginRequest);
 
             if (response.IsSuccessStatusCode)
             {
