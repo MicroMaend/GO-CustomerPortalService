@@ -37,7 +37,15 @@ public class BiddingHttpService : IBiddingService
 
     public async Task<Bidding?> GetHighestBidAsync(string auctionId)
     {
-        return await _http.GetFromJsonAsync<Bidding>($"{baseUrl}/bidding/bid/highest/{auctionId}");
+        var response = await _http.GetAsync($"{baseUrl}/bidding/bid/highest/{auctionId}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        if (response.Content.Headers.ContentLength == 0)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<Bidding>();
     }
 
 }

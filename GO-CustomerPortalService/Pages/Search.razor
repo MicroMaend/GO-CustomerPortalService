@@ -93,24 +93,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        foreach (var auction in allAuctions)
-        {
-            var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
-            highestBids[auction.Id] = bid;
-        }
-
         allAuctions = await AuctionService.GetAllAuctionsAsync();
         var allItems = await CatalogService.GetAllItemsAsync();
         var allAuctionHouses = await AuctionService.GetAllAuctionHouses();
 
+        // Byg opslagsdata
         itemLookup = allItems.ToDictionary(i => i.Id, i => i);
         auctionHouseLookup = allAuctionHouses.ToDictionary(h => h.Id, h => h.Name);
 
+        // Hent højeste bud
         foreach (var auction in allAuctions)
         {
+            var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+            highestBids[auction.Id] = bid;
+
             if (auction.HighestBidId != Guid.Empty)
             {
-                var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
                 bidLookup[auction.Id] = bid;
             }
             else
@@ -119,6 +117,7 @@
             }
         }
 
+        // Filtrer kategorier og auktionshuse
         categories = allItems
             .Select(i => i.Category)
             .Where(c => !string.IsNullOrWhiteSpace(c))
@@ -133,6 +132,7 @@
 
         ApplyFilters();
     }
+
 
     private void ApplyFilters()
     {
