@@ -76,6 +76,7 @@
 </div>
 
 @code {
+    private Dictionary<Guid, Bidding?> highestBids = new();
     private string selectedCategory = "";
     private string selectedAuctionHouse = "";
     private string selectedSort = "popular";
@@ -92,6 +93,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        foreach (var auction in allAuctions)
+        {
+            var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+            highestBids[auction.Id] = bid;
+        }
+
         allAuctions = await AuctionService.GetAllAuctionsAsync();
         var allItems = await CatalogService.GetAllItemsAsync();
         var allAuctionHouses = await AuctionService.GetAllAuctionHouses();
