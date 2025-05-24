@@ -1,8 +1,10 @@
 ﻿@page "/search"
 @inject NavigationManager NavigationManager
 @using GOCore
-@inject IAuctionService AuctionService
-
+@inject IAuctionService AuctionHttpService
+@inject ICatalogService CatalogService
+@inject IUserService UserService
+@inject IBiddingService BiddingService
 
 <PageTitle>Søg Auktioner – Grøn & Olsen</PageTitle>
 
@@ -53,12 +55,19 @@
             {
                 @foreach (var auction in filteredAuctions)
                 {
+                    var item = itemLookup.GetValueOrDefault(auction.Id);
+                    var bid = bidLookup.GetValueOrDefault(auction.Id);
+                    var house = item != null ? auctionHouseLookup.GetValueOrDefault(item.AuctionHouseId) : null;
+
+                    if (item == null || house == null) continue;
+
                     <div class="auction-card" @onclick="@(() => NavigateToAuction(auction.Id))">
-                        <img src="@((auction.Item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@auction.Item.Name" />
+                        <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" />
                         <div class="auction-details">
-                            <h4>@Shorten(auction.Item.Name, 45)</h4>
+                            <h4>@Shorten(item.Name, 45)</h4>
                             <p class="time-left">@GetTimeLeft(auction.AuctionEnd)</p>
-                            <p class="price">@((auction.HighestBid?.Amount ?? 0).ToString("N0")) DKK</p>
+                            <p class="price">@((bid?.Amount ?? 0).ToString("N0")) DKK</p>
+                            <p class="house-name">@house.Name</p>
                         </div>
                     </div>
                 }
@@ -82,24 +91,50 @@
     private List<Auction> allAuctions = new();
     private List<Auction> filteredAuctions = new();
 
+    private Dictionary<Guid, Item> itemLookup = new();
+    private Dictionary<Guid, Bidding?> bidLookup = new();
+    private Dictionary<Guid, AuctionHouse> auctionHouseLookup = new();
+
     protected override async Task OnInitializedAsync()
     {
-        allAuctions = await AuctionService.GetAllAuctionsAsync();
+        allAuctions = await AuctionHttpService.GetAllAuctionsAsync();
 
-        categories = allAuctions
-            .Select(a => a.Item.Category)
+        foreach (var auction in allAuctions)
+        {
+            var item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
+            itemLookup[auction.Id] = item;
+
+            if (auction.HighestBidId != Guid.Empty)
+            {
+                var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+                bidLookup[auction.Id] = bid;
+            }
+            else
+            {
+                bidLookup[auction.Id] = null;
+            }
+
+            if (item != null && !auctionHouseLookup.ContainsKey(item.AuctionHouseId))
+            {
+                var house = await AuctionHttpService.GetAuctionHouseById(item.AuctionHouseId);
+                if (house != null)
+                    auctionHouseLookup[item.AuctionHouseId] = house;
+            }
+        }
+
+        categories = itemLookup.Values
+            .Select(i => i.Category)
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Distinct()
             .ToList();
 
-        auctionHouses = allAuctions
-            .Select(a => GetAuctionHouseName(a))
+        auctionHouses = auctionHouseLookup.Values
+            .Select(h => h.Name)
             .Distinct()
             .ToList();
 
         ApplyFilters();
     }
-
 
     private void NavigateToAuction(Guid id)
     {
@@ -110,33 +145,30 @@
     {
         filteredAuctions = allAuctions
             .Where(a =>
-                (string.IsNullOrEmpty(selectedCategory) ||
-                 string.Equals(a.Item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrEmpty(selectedAuctionHouse) ||
-                 GetAuctionHouseName(a).Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase))
-            )
+            {
+                var item = itemLookup.GetValueOrDefault(a.Id);
+                if (item == null) return false;
+
+                var matchesCategory = string.IsNullOrEmpty(selectedCategory) ||
+                    string.Equals(item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase);
+
+                var houseMatch = auctionHouseLookup.TryGetValue(item.AuctionHouseId, out var house) &&
+                    (string.IsNullOrEmpty(selectedAuctionHouse) ||
+                     string.Equals(house?.Name, selectedAuctionHouse, StringComparison.OrdinalIgnoreCase));
+
+                return matchesCategory && houseMatch;
+            })
             .ToList();
 
         filteredAuctions = selectedSort switch
         {
-            "highestBid" => filteredAuctions.OrderByDescending(a => a.HighestBid?.Amount ?? 0).ToList(),
-            "lowestBid" => filteredAuctions.OrderBy(a => a.HighestBid?.Amount ?? 0).ToList(),
+            "highestBid" => filteredAuctions.OrderByDescending(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
+            "lowestBid" => filteredAuctions.OrderBy(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
             "endingSoon" => filteredAuctions.OrderBy(a => a.AuctionEnd).ToList(),
-            "lowestEstimate" => filteredAuctions.OrderBy(a => a.Item.Value).ToList(),
-            "highestEstimate" => filteredAuctions.OrderByDescending(a => a.Item.Value).ToList(),
-            _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList() // fallback fx til "ending soon"
+            "lowestEstimate" => filteredAuctions.OrderBy(a => itemLookup.GetValueOrDefault(a.Id)?.Value ?? 0).ToList(),
+            "highestEstimate" => filteredAuctions.OrderByDescending(a => itemLookup.GetValueOrDefault(a.Id)?.Value ?? 0).ToList(),
+            _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList()
         };
-    }
-
-    private string GetAuctionHouseName(Auction a)
-    {
-        if (a.Item.Description.Contains("Grøn & Olsen", StringComparison.OrdinalIgnoreCase))
-            return "Grøn & Olsen";
-        if (a.Item.Description.Contains("Nord Auktion", StringComparison.OrdinalIgnoreCase))
-            return "Nord Auktion";
-        if (a.Item.Description.Contains("AntikVest", StringComparison.OrdinalIgnoreCase))
-            return "AntikVest";
-        return "Ukendt";
     }
 
     private string GetTimeLeft(DateTime endTime)
