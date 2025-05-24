@@ -1,25 +1,28 @@
 ﻿@page "/auction/{AuctionId:guid}"
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
-@using GOCore
 @inject IAuctionService AuctionHttpService
+@inject ICatalogService CatalogService
+@inject IUserService UserService
+@inject IBiddingService BiddingService
+@using GOCore
 
 <PageTitle>Auktion – Grøn & Olsen</PageTitle>
 
 <link href="css/auction.css" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
 
-@if (auction == null)
+@if (auction == null || item == null || auctionHouse == null)
 {
-    <p>Indlæser auktionen...</p> 
+    <p>Indlæser auktionen...</p>
 }
 else
 {
     <div class="auctionpage-grid">
         <div class="gallery-section">
-            <img class="main-image" src="@MainImage" alt="@auction.Item.Name" />
+            <img class="main-image" src="@MainImage" alt="@item.Name" />
             <div class="thumbnails">
-                @foreach (var img in auction.Item.Images)
+                @foreach (var img in item.Images)
                 {
                     <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" @onclick="@(() => MainImage = img)" />
                 }
@@ -27,12 +30,12 @@ else
         </div>
 
         <div class="details-section">
-            <h1>@auction.Item.Name</h1>
+            <h1>@item.Name</h1>
 
             <div class="price-timer">
                 <div>
                     <p class="label">Højeste bud</p>
-                    <p class="price">@(auction.HighestBid?.Amount.ToString("N0") ?? "–") DKK</p>
+                    <p class="price">@(highestBid?.Amount.ToString("N0") ?? "–") DKK</p>
                 </div>
                 <div>
                     <p class="label">Slutter om</p>
@@ -41,39 +44,54 @@ else
             </div>
 
             <div class="bid-input">
-                <input type="number" min="@((auction.HighestBid?.Amount ?? 0) + 1)" placeholder="Indtast dit bud" />
+                <input type="number" min="@((highestBid?.Amount ?? 0) + 1)" placeholder="Indtast dit bud" />
                 <button class="bid-button">Byd nu</button>
             </div>
 
             <div class="meta">
-                <p><strong>Vurdering:</strong> @auction.Item.Value.ToString("N0") DKK</p>
-                <p><strong>Kategori:</strong> @auction.Item.Category</p>
-                <p><strong>Stand:</strong> @auction.Item.Condition</p>
-                <p><strong>Auktionshus:</strong> @GetAuctionHouseName(auction)</p>
+                <p><strong>Vurdering:</strong> @item.Value.ToString("N0") DKK</p>
+                <p><strong>Kategori:</strong> @item.Category</p>
+                <p><strong>Stand:</strong> @item.Condition</p>
+                <p><strong>Auktionshus:</strong> @auctionHouse.Name</p>
             </div>
 
             <div class="description">
                 <h3>Beskrivelse</h3>
-                <p>@auction.Item.Description</p>
+                <p>@item.Description</p>
             </div>
         </div>
     </div>
-
 }
 
 @code {
     [Parameter]
     public Guid AuctionId { get; set; }
-    private string MainImage;
 
-    private Auction auction;
+    private string MainImage;
+    private Auction? auction;
+    private Item? item;
+    private Bidding? highestBid;
+    private AuctionHouse? auctionHouse;
 
     protected override async Task OnInitializedAsync()
     {
-        // Brug mockdata fra AuctionService
         auction = await AuctionHttpService.GetByIdAsync(AuctionId);
-        MainImage = auction.Item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
+
+        if (auction != null)
+        {
+            item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
+            highestBid = auction.HighestBidId != Guid.Empty
+                ? await BiddingService.GetHighestBidAsync(auction.Id.ToString())
+                : null;
+
+            if (item != null)
+            {
+                auctionHouse = await AuctionHttpService.GetAuctionHouseById(item.AuctionHouseId);
+                MainImage = item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
+            }
+        }
     }
+
 
     private string GetTimeLeft(DateTime endTime)
     {
@@ -83,16 +101,5 @@ else
         if (span.TotalHours < 1) return $"{span.Minutes} min";
         if (span.TotalDays < 1) return $"{span.Hours}t {span.Minutes}m";
         return $"{(int)span.TotalDays}d {span.Hours}t";
-    }
-
-    private string GetAuctionHouseName(Auction a)
-    {
-        if (a.Item.Description.Contains("Grøn & Olsen", StringComparison.OrdinalIgnoreCase))
-            return "Grøn & Olsen";
-        if (a.Item.Description.Contains("Nord Auktion", StringComparison.OrdinalIgnoreCase))
-            return "Nord Auktion";
-        if (a.Item.Description.Contains("AntikVest", StringComparison.OrdinalIgnoreCase))
-            return "AntikVest";
-        return "Ukendt";
     }
 }

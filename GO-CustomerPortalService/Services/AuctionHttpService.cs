@@ -13,20 +13,51 @@ public class AuctionHttpService : IAuctionService
 
     public async Task<List<Auction>> GetAllAuctionsAsync()
     {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction");
-            return response ?? new List<Auction>();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching auctions: {ex.Message}");
-            throw;
-        }
+        return await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction") ?? new List<Auction>();
     }
 
     public async Task<Auction?> GetByIdAsync(Guid id)
     {
         return await _http.GetFromJsonAsync<Auction>($"{baseUrl}/auction/{id}");
+    }
+
+    public async Task<List<Auction>> GetAuctionsByStartTimeAsync(DateTime startTime)
+    {
+        return await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction/start?dateTime={startTime:o}") ?? new List<Auction>();
+    }
+
+    public async Task<List<Auction>> GetAuctionsByEndTimeAsync(DateTime endTime)
+    {
+        return await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction/end?dateTime={endTime:o}") ?? new List<Auction>();
+    }
+
+    public async Task<List<Auction>> GetAuctionsByStatusAsync(string status)
+    {
+        return await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction/status?status={status}") ?? new List<Auction>();
+    }
+
+    public async Task<string?> GetAuctionWinnerAsync(Guid id)
+    {
+        return await _http.GetFromJsonAsync<string>($"{baseUrl}/auction/{id}/winner");
+    }
+
+    public async Task CreateAuctionAsync(Auction auction)
+    {
+        await _http.PostAsJsonAsync($"{baseUrl}/auction", auction);
+    }
+
+    public async Task UpdateAuctionAsync(Guid id, Auction auction)
+    {
+        await _http.PutAsJsonAsync($"{baseUrl}/auction/{id}", auction);
+    }
+
+    public async Task DeleteAuctionAsync(Guid id)
+    {
+        await _http.DeleteAsync($"{baseUrl}/auction/{id}");
+    }
+
+    public async Task<AuctionHouse?> GetAuctionHouseById(Guid id)
+    {
+        return await _http.GetFromJsonAsync<AuctionHouse>($"auctionhouse/{id}");
     }
 }
