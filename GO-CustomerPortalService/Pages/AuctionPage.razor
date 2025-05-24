@@ -7,7 +7,7 @@
 @inject IBiddingService BiddingService
 @using GOCore
 
-<PageTitle>Auktion – Grøn & Olsen</PageTitle>
+@* <PageTitle>Auktion – Grøn & Olsen</PageTitle>
 
 <link href="css/auction.css" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
@@ -61,8 +61,6 @@ else
             </div>
         </div>
     </div>
-}
-
 @code {
     [Parameter]
     public Guid AuctionId { get; set; }
