@@ -11,6 +11,9 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<IAuctionService, AuctionHttpService>();
+builder.Services.AddScoped<IBiddingService, BiddingHttpService>();
+builder.Services.AddScoped<ICatalogService, CatalogHttpService>();
+builder.Services.AddScoped<IUserService, UserHttpService>();
 
 
 await builder.Build().RunAsync();
