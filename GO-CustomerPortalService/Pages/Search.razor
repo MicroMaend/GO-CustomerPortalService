@@ -1,9 +1,8 @@
 ﻿@page "/search"
 @inject NavigationManager NavigationManager
 @using GOCore
-@inject IAuctionService AuctionHttpService
+@inject IAuctionService AuctionService
 @inject ICatalogService CatalogService
-@inject IUserService UserService
 @inject IBiddingService BiddingService
 
 <PageTitle>Søg Auktioner – Grøn & Olsen</PageTitle>
@@ -12,7 +11,6 @@
 <link rel="stylesheet" href="css/styles.css" />
 
 <div class="search-layout">
-    <!-- VENSTREMENU -->
     <aside class="sidebar">
         <h4>Kategorier</h4>
         <ul>
@@ -33,7 +31,6 @@
         </ul>
     </aside>
 
-    <!-- HØJRE INHOLD -->
     <main class="auction-content">
         <div class="auction-header">
             <h3 class="crimson-text-bold">Alle auktioner</h3>
@@ -55,21 +52,19 @@
             {
                 @foreach (var auction in filteredAuctions)
                 {
-                    var item = itemLookup.GetValueOrDefault(auction.Id);
-                    var bid = bidLookup.GetValueOrDefault(auction.Id);
-                    var house = item != null ? auctionHouseLookup.GetValueOrDefault(item.AuctionHouseId) : null;
+                    var item = itemLookup.GetValueOrDefault(auction.ItemId);
 
-                    if (item == null || house == null) continue;
-
-                    <div class="auction-card" @onclick="@(() => NavigateToAuction(auction.Id))">
-                        <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" />
-                        <div class="auction-details">
-                            <h4>@Shorten(item.Name, 45)</h4>
-                            <p class="time-left">@GetTimeLeft(auction.AuctionEnd)</p>
-                            <p class="price">@((bid?.Amount ?? 0).ToString("N0")) DKK</p>
-                            <p class="house-name">@house.Name</p>
+                    if (item is not null)
+                    {
+                        <div class="auction-card" @onclick="@(() => NavigateToAuction(auction.Id))">
+                            <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" />
+                            <div class="auction-details">
+                                <h4>@Shorten(item.Name, 45)</h4>
+                                <p class="time-left">@GetTimeLeft(auction.AuctionEnd)</p>
+                                <p class="price">@((bidLookup.GetValueOrDefault(auction.Id)?.Amount ?? 0).ToString("N0")) DKK</p>
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
             }
             else
@@ -93,17 +88,19 @@
 
     private Dictionary<Guid, Item> itemLookup = new();
     private Dictionary<Guid, Bidding?> bidLookup = new();
-    private Dictionary<Guid, AuctionHouse> auctionHouseLookup = new();
+    private Dictionary<Guid, string> auctionHouseLookup = new();
 
     protected override async Task OnInitializedAsync()
     {
-        allAuctions = await AuctionHttpService.GetAllAuctionsAsync();
+        allAuctions = await AuctionService.GetAllAuctionsAsync();
+        var allItems = await CatalogService.GetAllItemsAsync();
+        var allAuctionHouses = await AuctionService.GetAllAuctionHouses();
+
+        itemLookup = allItems.ToDictionary(i => i.Id, i => i);
+        auctionHouseLookup = allAuctionHouses.ToDictionary(h => h.Id, h => h.Name);
 
         foreach (var auction in allAuctions)
         {
-            var item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
-            itemLookup[auction.Id] = item;
-
             if (auction.HighestBidId != Guid.Empty)
             {
                 var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
@@ -113,32 +110,21 @@
             {
                 bidLookup[auction.Id] = null;
             }
-
-            if (item != null && !auctionHouseLookup.ContainsKey(item.AuctionHouseId))
-            {
-                var house = await AuctionHttpService.GetAuctionHouseById(item.AuctionHouseId);
-                if (house != null)
-                    auctionHouseLookup[item.AuctionHouseId] = house;
-            }
         }
 
-        categories = itemLookup.Values
+        categories = allItems
             .Select(i => i.Category)
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Distinct()
             .ToList();
 
-        auctionHouses = auctionHouseLookup.Values
-            .Select(h => h.Name)
+        auctionHouses = allItems
+            .Select(i => auctionHouseLookup.GetValueOrDefault(i.AuctionHouseId))
+            .Where(n => !string.IsNullOrWhiteSpace(n))
             .Distinct()
             .ToList();
 
         ApplyFilters();
-    }
-
-    private void NavigateToAuction(Guid id)
-    {
-        NavigationManager.NavigateTo($"/auction/{id}");
     }
 
     private void ApplyFilters()
@@ -146,17 +132,13 @@
         filteredAuctions = allAuctions
             .Where(a =>
             {
-                var item = itemLookup.GetValueOrDefault(a.Id);
+                var item = itemLookup.GetValueOrDefault(a.ItemId);
                 if (item == null) return false;
 
-                var matchesCategory = string.IsNullOrEmpty(selectedCategory) ||
-                    string.Equals(item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase);
-
-                var houseMatch = auctionHouseLookup.TryGetValue(item.AuctionHouseId, out var house) &&
-                    (string.IsNullOrEmpty(selectedAuctionHouse) ||
-                     string.Equals(house?.Name, selectedAuctionHouse, StringComparison.OrdinalIgnoreCase));
-
-                return matchesCategory && houseMatch;
+                return (string.IsNullOrEmpty(selectedCategory) ||
+                        string.Equals(item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase)) &&
+                       (string.IsNullOrEmpty(selectedAuctionHouse) ||
+                        auctionHouseLookup.GetValueOrDefault(item.AuctionHouseId)?.Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase) == true);
             })
             .ToList();
 
@@ -165,10 +147,15 @@
             "highestBid" => filteredAuctions.OrderByDescending(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
             "lowestBid" => filteredAuctions.OrderBy(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
             "endingSoon" => filteredAuctions.OrderBy(a => a.AuctionEnd).ToList(),
-            "lowestEstimate" => filteredAuctions.OrderBy(a => itemLookup.GetValueOrDefault(a.Id)?.Value ?? 0).ToList(),
-            "highestEstimate" => filteredAuctions.OrderByDescending(a => itemLookup.GetValueOrDefault(a.Id)?.Value ?? 0).ToList(),
+            "lowestEstimate" => filteredAuctions.OrderBy(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
+            "highestEstimate" => filteredAuctions.OrderByDescending(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
             _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList()
         };
+    }
+
+    private void NavigateToAuction(Guid id)
+    {
+        NavigationManager.NavigateTo($"/auction/{id}");
     }
 
     private string GetTimeLeft(DateTime endTime)

@@ -58,6 +58,13 @@ public class AuctionHttpService : IAuctionService
 
     public async Task<AuctionHouse?> GetAuctionHouseById(Guid id)
     {
-        return await _http.GetFromJsonAsync<AuctionHouse>($"auctionhouse/{id}");
+        return await _http.GetFromJsonAsync<AuctionHouse>($"{baseUrl}auctionhouse/{id}");
     }
+
+    public async Task<List<AuctionHouse>> GetAllAuctionHouses()
+    {
+        return await _http.GetFromJsonAsync<List<AuctionHouse>>($"{baseUrl}/auction/auctionhouses")
+               ?? new List<AuctionHouse>();
+    }
+
 }

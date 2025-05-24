@@ -12,5 +12,6 @@ public interface IAuctionService
     Task UpdateAuctionAsync(Guid id, Auction auction);
     Task DeleteAuctionAsync(Guid id);
     Task<AuctionHouse?> GetAuctionHouseById(Guid id);
+    Task<List<AuctionHouse>> GetAllAuctionHouses();
 
 }
