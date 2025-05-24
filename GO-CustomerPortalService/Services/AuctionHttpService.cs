@@ -11,7 +11,7 @@ public class AuctionHttpService : IAuctionService
         _http = http;
     }
 
-    public async Task<List<allAuctionsViewModel>> GetAllAuctionsAsync()
+    public async Task<List<Auction>> GetAllAuctionsAsync()
     {
         return await _http.GetFromJsonAsync<List<Auction>>($"{baseUrl}/auction") ?? new List<Auction>();
     }
