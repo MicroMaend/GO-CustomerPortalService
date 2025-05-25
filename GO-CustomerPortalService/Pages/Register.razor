@@ -1,7 +1,10 @@
 ﻿@page "/register"
+@using System.Net
+@using GOCore
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IUserService UserHttpService
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -58,15 +61,15 @@
 </div>
 
 @code {
-    private UserModel user = new();
+    private User user = new();
     private string errorMessage;
 
     private async Task RegisterUser()
     {
         try
         {
-            var response = await Http.PostAsJsonAsync("auth/register", user);
-            if (response.IsSuccessStatusCode)
+            var response = await UserHttpService.CreateUserAsync(user);
+            if (response == HttpStatusCode.Created)
             {
                 NavigationManager.NavigateTo("/login");
             }
@@ -85,16 +88,5 @@
     {
         NavigationManager.NavigateTo("/login");
     }
-
-    private class UserModel
-    {
-        public string UserName { get; set; }
-        public string Password { get; set; }
-        public string Name { get; set; }
-        public string Address { get; set; }
-        public int ZipCode { get; set; }
-        public string City { get; set; }
-        public int PhoneNumber { get; set; }
-        public string Email { get; set; }
-    }
+    
 }

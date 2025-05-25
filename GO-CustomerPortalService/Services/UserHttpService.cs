@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net;
+using System.Net.Http.Json;
 using GOCore;
 
 public class UserHttpService : IUserService
@@ -26,9 +27,11 @@ public class UserHttpService : IUserService
         return await _http.GetFromJsonAsync<List<User>>($"{baseUrl}/user/all");
     }
 
-    public async Task CreateUserAsync(User user)
+    public async Task<HttpStatusCode> CreateUserAsync(User user)
     {
-        await _http.PostAsJsonAsync($"{baseUrl}/user/add", user);
+        var response = await _http.PostAsJsonAsync($"{baseUrl}/user/add", user);
+
+        return response.StatusCode;
     }
 
     public async Task UpdateUserAsync(string userId, User user)
