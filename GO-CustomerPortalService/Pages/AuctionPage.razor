@@ -5,7 +5,9 @@
 @inject ICatalogService CatalogService
 @inject IUserService UserService
 @inject IBiddingService BiddingService
+@inject ILocalStorageService LocalStorage
 @using GOCore
+@using System.Security.Claims
 
 <PageTitle>Auktion – Grøn & Olsen</PageTitle>
 
@@ -81,12 +83,14 @@ else
         if (auction != null)
         {
             item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
-            highestBid = auction.HighestBidId != Guid.Empty
-                ? await BiddingService.GetHighestBidAsync(auction.Id.ToString())
-                : null;
 
-            amount = highestBid.Amount+ 50; // Minimum bid is current highest bid + 50 DKK
-            
+            if (auction.HighestBidId != Guid.Empty)
+            {
+                highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+            }
+
+            amount = (highestBid?.Amount ?? 0) + 50;
+
             if (item != null)
             {
                 auctionHouse = await AuctionHttpService.GetAuctionHouseById(item.AuctionHouseId);
@@ -94,23 +98,56 @@ else
             }
         }
     }
-    
+
     private async Task SendBid()
     {
-        if (auction == null || item == null || highestBid == null) return;
+        if (auction == null || item == null) return;
 
-        if (amount <= highestBid.Amount)
+        if (amount <= (highestBid?.Amount ?? 0))
         {
-            // Notify user that bid must be higher than current highest bid
+            Console.WriteLine("Bud er for lavt.");
             return;
         }
 
-        var bid = new Bidding(amount, new Guid(), auction.Id);
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
 
-        await BiddingService.PlaceBidAsync(bid);
-        highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
-        amount = highestBid.Amount + 50; // Update amount for next bid
-        StateHasChanged(); // Refresh the UI to show updated bid
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var userIdString = GetUserIdFromToken(token);
+        if (!Guid.TryParse(userIdString, out var userId))
+        {
+            Console.WriteLine("Ugyldigt bruger-ID i token.");
+            return;
+        }
+
+        try
+        {
+            var bid = new Bidding(amount, userId, auction.Id);
+            await BiddingService.PlaceBidAsync(bid);
+
+            highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+            amount = highestBid.Amount + 50;
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fejl under budgivning: {ex.Message}");
+            // Du kan evt. vise en fejlbesked til brugeren her
+        }
+    }
+
+    private string? GetUserIdFromToken(string token)
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        return jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
     }
 
     private string GetTimeLeft(DateTime endTime)
