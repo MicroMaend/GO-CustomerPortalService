@@ -35,40 +35,45 @@
     private string password = string.Empty;
     private string errorMessage;
 
-    private async Task LoginUser()
+    private class TokenResponse
+{
+    public string Token { get; set; }
+}
+
+private async Task LoginUser()
+{
+    errorMessage = string.Empty;
+
+    try
     {
-        errorMessage = string.Empty;
+        var loginRequest = new { Username = username, Password = password };
+        var response = await Http.PostAsJsonAsync("api/auth/login", loginRequest);
 
-        try
+        if (response.IsSuccessStatusCode)
         {
-            var loginRequest = new { Username = username, Password = password };
-            var response = await Http.PostAsJsonAsync("api/auth/login", loginRequest);
+            var tokenResponse = await response.Content.ReadFromJsonAsync<TokenResponse>();
 
-            if (response.IsSuccessStatusCode)
+            if (tokenResponse != null && !string.IsNullOrEmpty(tokenResponse.Token))
             {
-                // Her læser vi token som en simpel string (ren JWT token)
-                var token = await response.Content.ReadAsStringAsync();
-
-                if (!string.IsNullOrEmpty(token))
-                {
-                    await localStorage.SetItemAsync("authToken", token);
-                    NavigationManager.NavigateTo("/");
-                }
-                else
-                {
-                    errorMessage = "Login failed: Token was empty.";
-                }
+                await localStorage.SetItemAsync("authToken", tokenResponse.Token);
+                NavigationManager.NavigateTo("/");
             }
             else
             {
-                errorMessage = "Invalid username or password.";
+                errorMessage = "Login failed: Token was empty.";
             }
         }
-        catch (Exception ex)
+        else
         {
-            errorMessage = $"Login failed: {ex.Message}";
+            errorMessage = "Invalid username or password.";
         }
     }
+    catch (Exception ex)
+    {
+        errorMessage = $"Login failed: {ex.Message}";
+    }
+}
+
 
     private void NavigateToCreateAccount()
     {
