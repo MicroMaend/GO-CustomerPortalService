@@ -20,6 +20,8 @@ builder.Services.AddScoped<IUserService, UserHttpService>();
 // Tilføj din CustomAuthStateProvider
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
+//thoughts??
+
 // Tilføj AuthorizationCore
 builder.Services.AddAuthorizationCore();
 
