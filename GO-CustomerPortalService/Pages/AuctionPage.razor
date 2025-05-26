@@ -98,39 +98,39 @@ else
     }
     
     private async Task SendBid()
+{
+    if (auction == null || item == null) return;
+
+    if (amount <= (highestBid?.Amount ?? 0))
     {
-        if (auction == null || item == null) return;
-
-        if (amount <= (highestBid?.Amount ?? 0))
-        {
-            // Notify user that bid must be higher than current highest bid
-            return;
-        }
-
-        var token = await localStorage.GetItemAsync<string>("authToken");
-
-        if (string.IsNullOrEmpty(token))
-        {
-            NavigationManager.NavigateTo("/login");
-            return;
-        }
-
-        var bid = new Bidding(amount, Guid.Empty, auction.Id);
-
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        try
-        {
-            await BiddingService.PlaceBidAsync(bid);
-            highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
-            amount = (highestBid?.Amount ?? 0) + 50; // Opdater beløbet
-            StateHasChanged(); // Refresh the UI
-        }
-        finally
-        {
-            _http.DefaultRequestHeaders.Authorization = null;
-        }
+        // Notify user that bid must be higher than current highest bid
+        return;
     }
+
+    var token = await localStorage.GetItemAsync<string>("authToken");
+
+    if (string.IsNullOrEmpty(token))
+    {
+        NavigationManager.NavigateTo("/login");
+        return;
+    }
+
+    var bid = new Bidding(amount, Guid.Empty, auction.Id);
+
+    Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token); // Brug 'Http'
+
+    try
+    {
+        await BiddingService.PlaceBidAsync(bid);
+        highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+        amount = (highestBid?.Amount ?? 0) + 50; // Opdater beløbet
+        StateHasChanged(); // Refresh the UI
+    }
+    finally
+    {
+        Http.DefaultRequestHeaders.Authorization = null; // Brug 'Http'
+    }
+}
 
     private string GetTimeLeft(DateTime endTime)
     {

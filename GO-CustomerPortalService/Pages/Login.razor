@@ -2,6 +2,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject CustomAuthStateProvider AuthStateProvider
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -51,6 +52,7 @@
             {
                 var token = await response.Content.ReadAsStringAsync();
                 await localStorage.SetItemAsync("authToken", token);
+                await AuthStateProvider.MarkUserAsAuthenticated(token);
                 NavigationManager.NavigateTo("/");
             }
             else
