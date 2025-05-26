@@ -1,21 +1,21 @@
 /* Navbar Styles */
 .navbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Center the navbar horizontally */
     align-items: center;
     background-color: #ffffff; /* White background */
     padding: 10px 20px;
     color: #000000; /* Black text */
     box-sizing: border-box;
     margin-top: 10px;
-    margin-bottom: 0; 
+    margin-bottom: 0;
     padding-bottom: 0;
 }
 
     .navbar .categories {
         display: flex; /* Arrange categories horizontally */
         gap: 10px; /* Add spacing between categories */
-
+        align-items: center;
     }
 
         .navbar .categories a {
