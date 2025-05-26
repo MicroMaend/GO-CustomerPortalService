@@ -1,5 +1,6 @@
 ﻿@page "/search"
 @inject NavigationManager NavigationManager
+@using System.Web
 @using GOCore
 @inject IAuctionService AuctionService
 @inject ICatalogService CatalogService
@@ -97,11 +98,11 @@
         var allItems = await CatalogService.GetAllItemsAsync();
         var allAuctionHouses = await AuctionService.GetAllAuctionHouses();
 
-        // Byg opslagsdata
+        // Build lookup data
         itemLookup = allItems.ToDictionary(i => i.Id, i => i);
         auctionHouseLookup = allAuctionHouses.ToDictionary(h => h.Id, h => h.Name);
 
-        // Hent højeste bud
+        // Get highest bids
         foreach (var auction in allAuctions)
         {
             var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
@@ -117,7 +118,7 @@
             }
         }
 
-        // Filtrer kategorier og auktionshuse
+        // Filter categories and auction houses
         categories = allItems
             .Select(i => i.Category)
             .Where(c => !string.IsNullOrWhiteSpace(c))
@@ -129,6 +130,21 @@
             .Where(n => !string.IsNullOrWhiteSpace(n))
             .Distinct()
             .ToList();
+
+        // Handle search query
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query).Get("query");
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            allAuctions = allAuctions
+                .Where(a =>
+                {
+                    var item = itemLookup.GetValueOrDefault(a.ItemId);
+                    return item != null && item.Name.Contains(query, StringComparison.OrdinalIgnoreCase);
+                })
+                .ToList();
+        }
 
         ApplyFilters();
     }

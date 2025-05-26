@@ -1,18 +1,16 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 
-
 <div class="page">
-
     <header>
         <div>
             <a href="/">
-            <img src="/GO_Logo.png" alt="Auction House Logo" />
+                <img src="/GO_Logo.png" alt="Auction House Logo" />
             </a>
         </div>
         <div class="search-container">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" placeholder="Search for auctions..." class="inter-regular" />
+            <input type="text" @bind="searchQuery" placeholder="Search for auctions..." class="inter-regular" @onkeydown="HandleKeyPress" />
         </div>
         <div>
             <button @onclick="ToLogin" class="inter-bold">Login</button>
@@ -54,6 +52,27 @@
 </div>
 
 @code {
+    private string searchQuery = string.Empty;
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(searchQuery))
+        {
+            if (NavigationManager.Uri.Contains("search"))
+            {
+                NavigationManager.NavigateTo($"/search?query={Uri.EscapeDataString(searchQuery)}");
+                NavigationManager.Refresh();
+                searchQuery = string.Empty;
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/search?query={Uri.EscapeDataString(searchQuery)}");
+                StateHasChanged();
+                searchQuery = string.Empty;            
+            }
+        }
+    }
+
     private void ToLogin()
     {
         NavigationManager.NavigateTo("/login");
