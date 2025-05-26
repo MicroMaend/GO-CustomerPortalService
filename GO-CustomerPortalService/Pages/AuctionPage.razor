@@ -47,10 +47,17 @@ else
                 </div>
             </div>
 
-            <div class="bid-input">
-                <input type="number" min="@((highestBid?.Amount ?? 0) + 50)" @bind="amount" placeholder="Indtast dit bud" />
-                <button class="bid-button" @onclick="SendBid">Byd nu</button>
-            </div>
+            @if(highestBid == null || highestBid.UserId.ToString() != GetUserIdFromToken(token))
+            {
+                <div class="bid-input">
+                    <input type="number" min="@((highestBid?.Amount ?? 0) + 50)" @bind="amount" placeholder="Indtast dit bud" />
+                    <button class="bid-button" @onclick="SendBid">Byd nu</button>
+                </div>
+            } 
+            else
+            {
+                <p class="notice">Du har højeste bud.</p>
+            }
 
             <div class="meta">
                 <p><strong>Vurdering:</strong> @item.Value.ToString("N0") DKK</p>
@@ -77,6 +84,7 @@ else
     private Bidding? highestBid;
     private AuctionHouse? auctionHouse;
     private int amount;
+    private string token;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,6 +107,7 @@ else
                 MainImage = item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
             }
         }
+        token = await LocalStorage.GetItemAsync<string>("authToken");
     }
 
     private async Task SendBid()
@@ -110,8 +119,7 @@ else
             Console.WriteLine("Bud er for lavt.");
             return;
         }
-
-        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        
         if (string.IsNullOrEmpty(token))
         {
             NavigationManager.NavigateTo("/login");
@@ -147,6 +155,12 @@ else
 
     private string? GetUserIdFromToken(string token)
     {
+        if (string.IsNullOrEmpty(token))
+        {
+            Console.WriteLine("Token is null or empty.");
+            return null;
+        }
+        
         var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
         return jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
