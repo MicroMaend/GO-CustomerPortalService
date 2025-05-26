@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization; 
+using GO_CustomerPortalService.Authentication;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

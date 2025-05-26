@@ -1,103 +1,106 @@
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Blazored.LocalStorage;
-using System.Net.Http.Headers;
-using System.Text.Json;
-using Microsoft.AspNetCore.Components;
-
-public class CustomAuthStateProvider : AuthenticationStateProvider
+namespace GO_CustomerPortalService.Authentication
 {
-    private readonly ILocalStorageService _localStorage;
-    private readonly HttpClient _httpClient;
+    using Microsoft.AspNetCore.Components.Authorization;
+    using System.Security.Claims;
+    using System.Threading.Tasks;
+    using Blazored.LocalStorage;
+    using System.Net.Http.Headers;
+    using System.Text.Json;
+    using Microsoft.AspNetCore.Components;
 
-    public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient)
+    public class CustomAuthStateProvider : AuthenticationStateProvider
     {
-        _localStorage = localStorage;
-        _httpClient = httpClient;
-    }
+        private readonly ILocalStorageService _localStorage;
+        private readonly HttpClient _httpClient;
 
-    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        var token = await _localStorage.GetItemAsync<string>("authToken");
-
-        if (string.IsNullOrEmpty(token))
+        public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient)
         {
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Anonym bruger
+            _localStorage = localStorage;
+            _httpClient = httpClient;
         }
 
-        return await CreateAuthenticationState(token);
-    }
-
-    private async Task<AuthenticationState> CreateAuthenticationState(string token)
-    {
-        try
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var claimsPrincipal = ParseClaimsPrincipal(token);
-            if (claimsPrincipal != null)
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+
+            if (string.IsNullOrEmpty(token))
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                return new AuthenticationState(claimsPrincipal);
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Anonym bruger
             }
+
+            return await CreateAuthenticationState(token);
         }
-        catch (Exception)
+
+        private async Task<AuthenticationState> CreateAuthenticationState(string token)
         {
-            // Log eventuelt fejl ved parsing af token
+            try
+            {
+                var claimsPrincipal = ParseClaimsPrincipal(token);
+                if (claimsPrincipal != null)
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    return new AuthenticationState(claimsPrincipal);
+                }
+            }
+            catch (Exception)
+            {
+                // Log eventuelt fejl ved parsing af token
+                await _localStorage.RemoveItemAsync("authToken");
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Anonym ved fejl
+            }
+
             await _localStorage.RemoveItemAsync("authToken");
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Anonym ved fejl
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Anonym hvis parsing fejler
         }
 
-        await _localStorage.RemoveItemAsync("authToken");
-        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Anonym hvis parsing fejler
-    }
-
-    private ClaimsPrincipal ParseClaimsPrincipal(string token)
-{
-    try
-    {
-        var parts = token.Split('.');
-        if (parts.Length < 2)
+        private ClaimsPrincipal ParseClaimsPrincipal(string token)
         {
-            return null; // Ugyldigt token format
-        }
-        var payloadBase64 = parts[1].Replace('-', '+').Replace('_', '/');
-        while (payloadBase64.Length % 4 != 0)
-        {
-            payloadBase64 += '=';
-        }
-        var jsonPayload = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(payloadBase64));
-        var claimsFromToken = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonPayload);
-
-        var claims = new List<Claim>();
-        if (claimsFromToken != null)
-        {
-            foreach (var keyValuePair in claimsFromToken)
+            try
             {
-                claims.Add(new Claim(keyValuePair.Key, keyValuePair.Value?.ToString()));
+                var parts = token.Split('.');
+                if (parts.Length < 2)
+                {
+                    return null; // Ugyldigt token format
+                }
+                var payloadBase64 = parts[1].Replace('-', '+').Replace('_', '/');
+                while (payloadBase64.Length % 4 != 0)
+                {
+                    payloadBase64 += '=';
+                }
+                var jsonPayload = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(payloadBase64));
+                var claimsFromToken = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonPayload);
+
+                var claims = new List<Claim>();
+                if (claimsFromToken != null)
+                {
+                    foreach (var keyValuePair in claimsFromToken)
+                    {
+                        claims.Add(new Claim(keyValuePair.Key, keyValuePair.Value?.ToString()));
+                    }
+
+                    return new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+                }
+            }
+            catch (Exception)
+            {
+                // Log eventuelt fejl ved parsing
+                return null;
             }
 
-            return new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+            return null;
         }
-    }
-    catch (Exception)
-    {
-        // Log eventuelt fejl ved parsing
-        return null;
-    }
 
-    return null;
-}
+        public async Task MarkUserAsAuthenticated(string token)
+        {
+            var authenticationState = await CreateAuthenticationState(token);
+            NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
+        }
 
-    public async Task MarkUserAsAuthenticated(string token)
-    {
-        var authenticationState = await CreateAuthenticationState(token);
-        NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
-    }
-
-    public async Task MarkUserAsLoggedOut()
-    {
-        await _localStorage.RemoveItemAsync("authToken");
-        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()))));
-        _httpClient.DefaultRequestHeaders.Authorization = null;
+        public async Task MarkUserAsLoggedOut()
+        {
+            await _localStorage.RemoveItemAsync("authToken");
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()))));
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
     }
 }
