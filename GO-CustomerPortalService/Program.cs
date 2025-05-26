@@ -21,7 +21,7 @@ builder.Services.AddScoped<IUserService, UserHttpService>();
 // Tilføj din CustomAuthStateProvider
 builder.Services.AddScoped<AuthenticationStateProvider, GO_CustomerPortalService.Authentication.CustomAuthStateProvider>();
 
-//thoughts??
+//thoughts?
 
 // Tilføj AuthorizationCore
 builder.Services.AddAuthorizationCore();
