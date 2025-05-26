@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-
-
 <div class="login-container">
     <h3 class="crimson-text-bold">Login</h3>
     <div class="form-group">
@@ -32,9 +30,6 @@
     }
 </div>
 
-
-
-
 @code {
     private string username = string.Empty;
     private string password = string.Empty;
@@ -42,6 +37,8 @@
 
     private async Task LoginUser()
     {
+        errorMessage = string.Empty;
+
         try
         {
             var loginRequest = new { Username = username, Password = password };
@@ -49,9 +46,18 @@
 
             if (response.IsSuccessStatusCode)
             {
+                // Her læser vi token som en simpel string (ren JWT token)
                 var token = await response.Content.ReadAsStringAsync();
-                await localStorage.SetItemAsync("authToken", token);
-                NavigationManager.NavigateTo("/");
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    await localStorage.SetItemAsync("authToken", token);
+                    NavigationManager.NavigateTo("/");
+                }
+                else
+                {
+                    errorMessage = "Login failed: Token was empty.";
+                }
             }
             else
             {
@@ -67,10 +73,5 @@
     private void NavigateToCreateAccount()
     {
         NavigationManager.NavigateTo("/register");
-    }
-
-    private void ToHomePage()
-    {
-        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 }
