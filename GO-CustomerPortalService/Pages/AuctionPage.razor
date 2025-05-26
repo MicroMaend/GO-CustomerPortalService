@@ -5,9 +5,7 @@
 @inject ICatalogService CatalogService
 @inject IUserService UserService
 @inject IBiddingService BiddingService
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @using GOCore
-@using System.Net.Http.Headers
 
 <PageTitle>Auktion – Grøn & Olsen</PageTitle>
 
@@ -87,7 +85,7 @@ else
                 ? await BiddingService.GetHighestBidAsync(auction.Id.ToString())
                 : null;
 
-            amount = highestBid?.Amount + 50 ?? 50; // Minimum bid is current highest bid + 50 DKK, or 50 if no bids
+            amount = highestBid.Amount+ 50; // Minimum bid is current highest bid + 50 DKK
             
             if (item != null)
             {
@@ -98,39 +96,22 @@ else
     }
     
     private async Task SendBid()
-{
-    if (auction == null || item == null) return;
-
-    if (amount <= (highestBid?.Amount ?? 0))
     {
-        // Notify user that bid must be higher than current highest bid
-        return;
-    }
+        if (auction == null || item == null || highestBid == null) return;
 
-    var token = await localStorage.GetItemAsync<string>("authToken");
+        if (amount <= highestBid.Amount)
+        {
+            // Notify user that bid must be higher than current highest bid
+            return;
+        }
 
-    if (string.IsNullOrEmpty(token))
-    {
-        NavigationManager.NavigateTo("/login");
-        return;
-    }
+        var bid = new Bidding(amount, new Guid(), auction.Id);
 
-    var bid = new Bidding(amount, Guid.Empty, auction.Id);
-
-    Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token); // Brug 'Http'
-
-    try
-    {
         await BiddingService.PlaceBidAsync(bid);
         highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
-        amount = (highestBid?.Amount ?? 0) + 50; // Opdater beløbet
-        StateHasChanged(); // Refresh the UI
+        amount = highestBid.Amount + 50; // Update amount for next bid
+        StateHasChanged(); // Refresh the UI to show updated bid
     }
-    finally
-    {
-        Http.DefaultRequestHeaders.Authorization = null; // Brug 'Http'
-    }
-}
 
     private string GetTimeLeft(DateTime endTime)
     {
