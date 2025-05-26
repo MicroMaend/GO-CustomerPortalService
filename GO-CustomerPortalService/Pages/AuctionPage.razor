@@ -63,23 +63,6 @@ else
                 <h3>Beskrivelse</h3>
                 <p>@item.Description</p>
             </div>
-
-            <div class="last-bids">
-                <h3>De 3 nyeste bud</h3>
-                @if (lastThreeBids.Count == 0)
-                {
-                    <p>Ingen bud endnu.</p>
-                }
-                else
-                {
-                    <ul>
-                        @foreach (var bidWithUser in lastThreeBids)
-                        {
-                            <li>@bidWithUser.Username: @bidWithUser.Bid.Amount.ToString("N0") DKK (@bidWithUser.Bid.Date.ToLocalTime():g)</li>
-                        }
-                    </ul>
-                }
-            </div>
         </div>
     </div>
 }
@@ -94,8 +77,6 @@ else
     private Bidding? highestBid;
     private AuctionHouse? auctionHouse;
     private int amount;
-
-    private List<BidWithUser> lastThreeBids = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,27 +97,6 @@ else
             {
                 auctionHouse = await AuctionHttpService.GetAuctionHouseById(item.AuctionHouseId);
                 MainImage = item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
-            }
-
-            var token = await LocalStorage.GetItemAsync<string>("authToken");
-
-if (!string.IsNullOrEmpty(token))
-{
-    Http.DefaultRequestHeaders.Authorization =
-        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-}
-
-var allBids = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString());
-
-            // Tag de 3 nyeste bud
-            var last3 = allBids.OrderByDescending(b => b.Date).Take(3).ToList();
-
-            lastThreeBids.Clear();
-
-            foreach (var bid in last3)
-            {
-                var user = await UserService.GetUserByIdAsync(bid.UserId.ToString());
-                lastThreeBids.Add(new BidWithUser { Bid = bid, Username = user?.UserName ?? "Ukendt" });
             }
         }
     }
@@ -181,12 +141,13 @@ var allBids = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString()
         catch (Exception ex)
         {
             Console.WriteLine($"Fejl under budgivning: {ex.Message}");
+            // please?
         }
     }
 
     private string? GetUserIdFromToken(string token)
     {
-        var handler = new JwtSecurityTokenHandler();
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
         return jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
     }
@@ -199,11 +160,5 @@ var allBids = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString()
         if (span.TotalHours < 1) return $"{span.Minutes} min";
         if (span.TotalDays < 1) return $"{span.Hours}t {span.Minutes}m";
         return $"{(int)span.TotalDays}d {span.Hours}t";
-    }
-
-    private class BidWithUser
-    {
-        public Bidding Bid { get; set; }
-        public string Username { get; set; } = string.Empty;
     }
 }
