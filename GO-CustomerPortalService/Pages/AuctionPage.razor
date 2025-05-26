@@ -70,6 +70,27 @@ else
                 <h3>Beskrivelse</h3>
                 <p>@item.Description</p>
             </div>
+            
+            @if(token != null)
+            {
+                <div class="biddings">
+                    <h3>Seneste bud</h3>
+                    @if (biddings.Count != 0)
+                    {
+                        @foreach (var bid in biddings.OrderBy(b => b.Date))
+                        {
+                            <div class="bid">
+                                <p><strong>@UserService.GetUserByIdAsync(bid.UserId.ToString()).Result.UserName</strong> bød <span class="amount">@bid.Amount.ToString("N0") DKK</span></p>
+                                <p class="time">@bid.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>Ingen bud endnu.</p>
+                    }
+                </div>
+            }
         </div>
     </div>
 }
@@ -85,6 +106,7 @@ else
     private AuctionHouse? auctionHouse;
     private int amount;
     private string token;
+    private List<Bidding> biddings;
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,6 +130,8 @@ else
             }
         }
         token = await LocalStorage.GetItemAsync<string>("authToken");
+
+        biddings = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString());
     }
 
     private async Task SendBid()
