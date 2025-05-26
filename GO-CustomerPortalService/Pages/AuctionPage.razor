@@ -77,11 +77,12 @@ else
                     <h3>Seneste bud</h3>
                     @if (biddings.Count != 0)
                     {
-                        @foreach (var bid in biddings.OrderBy(b => b.Date))
+                        @foreach (var bid in biddings.OrderByDescending(b => b.Date).Take(3))
                         {
                             <div class="bid">
-                                <p><strong>@UserService.GetUserNameByIdAsync(bid.UserId.ToString())</strong> bød <span class="amount">@bid.Amount.ToString("N0") DKK</span></p>
                                 <p class="time">@bid.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</p>
+                                <p><strong>@userNames[bid.UserId]</strong> bød <span class="amount">@bid.Amount.ToString("N0") DKK</span></p>
+                                <br/>
                             </div>
                         }
                     }
@@ -107,6 +108,8 @@ else
     private int amount;
     private string token;
     private List<Bidding> biddings;
+    private Dictionary<Guid, string> userNames = new();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,6 +135,14 @@ else
         token = await LocalStorage.GetItemAsync<string>("authToken");
 
         biddings = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString());
+        
+        userNames = new Dictionary<Guid, string>();
+
+        foreach (var bid in biddings)
+        {
+            var userName = await UserService.GetUserNameByIdAsync(bid.UserId.ToString());
+            userNames[bid.UserId] = userName;
+        }
     }
 
     private async Task SendBid()

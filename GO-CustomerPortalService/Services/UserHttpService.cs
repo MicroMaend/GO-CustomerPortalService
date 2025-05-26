@@ -24,7 +24,8 @@ public class UserHttpService : IUserService
 
     public async Task<string> GetUserNameByIdAsync(string userId)
     {
-        return await _http.GetAsync($"{baseUrl}/username/{userId}").Result.Content.ReadAsStringAsync();
+        var response = await _http.GetAsync($"{baseUrl}/user/username/{userId}");
+        return await response.Content.ReadAsStringAsync();
     }
 
     public async Task<List<User>> GetAllUsersAsync()
