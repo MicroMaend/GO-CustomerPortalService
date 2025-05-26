@@ -1,7 +1,7 @@
 ﻿@page "/login"
-@inject NavigationManager NavigationManager
-@inject HttpClient Http
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="css/login.css" />
     <link rel="stylesheet" href="css/styles.css" />
 </head>
+
+
 
 <div class="login-container">
     <h3 class="crimson-text-bold">Login</h3>
@@ -30,6 +32,9 @@
     }
 </div>
 
+
+
+
 @code {
     private string username = string.Empty;
     private string password = string.Empty;
@@ -45,8 +50,8 @@
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
-                // Send token som query parameter til callback siden
-                NavigationManager.NavigateTo($"/authentication/login-callback?token={Uri.EscapeDataString(token)}");
+                await localStorage.SetItemAsync("authToken", token);
+                NavigationManager.NavigateTo("/");
             }
             else
             {
