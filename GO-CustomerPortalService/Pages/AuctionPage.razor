@@ -5,7 +5,10 @@
 @inject ICatalogService CatalogService
 @inject IUserService UserService
 @inject IBiddingService BiddingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @using GOCore
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Auktion – Grøn & Olsen</PageTitle>
 
@@ -18,49 +21,99 @@
 }
 else
 {
-    <div class="auctionpage-grid">
-        <div class="gallery-section">
-            <img class="main-image" src="@MainImage" alt="@item.Name" />
-            <div class="thumbnails">
-                @foreach (var img in item.Images)
-                {
-                    <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" @onclick="@(() => MainImage = img)" />
-                }
-            </div>
-        </div>
-
-        <div class="details-section">
-            <h1>@item.Name</h1>
-
-            <div class="price-timer">
-                <div>
-                    <p class="label">Højeste bud</p>
-                    <p class="price">@(highestBid?.Amount.ToString("N0") ?? "–") DKK</p>
+    <AuthorizeView>
+        <Authorized>
+            <div class="auctionpage-grid">
+                <div class="gallery-section">
+                    <img class="main-image" src="@MainImage" alt="@item.Name" />
+                    <div class="thumbnails">
+                        @foreach (var img in item.Images)
+                        {
+                            <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" @onclick="@(() => MainImage = img)" />
+                        }
+                    </div>
                 </div>
-                <div>
-                    <p class="label">Slutter om</p>
-                    <p class="time">@GetTimeLeft(auction.AuctionEnd)</p>
+
+                <div class="details-section">
+                    <h1>@item.Name</h1>
+
+                    <div class="price-timer">
+                        <div>
+                            <p class="label">Højeste bud</p>
+                            <p class="price">@(highestBid?.Amount.ToString("N0") ?? "–") DKK</p>
+                        </div>
+                        <div>
+                            <p class="label">Slutter om</p>
+                            <p class="time">@GetTimeLeft(auction.AuctionEnd)</p>
+                        </div>
+                    </div>
+
+                    <div class="bid-input">
+                        <input type="number" min="@((highestBid?.Amount ?? 0) + 50)" @bind="amount" placeholder="Indtast dit bud" />
+                        <button class="bid-button" @onclick="SendBid">Byd nu</button>
+                    </div>
+
+                    <div class="meta">
+                        <p><strong>Vurdering:</strong> @item.Value.ToString("N0") DKK</p>
+                        <p><strong>Kategori:</strong> @item.Category</p>
+                        <p><strong>Stand:</strong> @item.Condition</p>
+                        <p><strong>Auktionshus:</strong> @auctionHouse.Name</p>
+                    </div>
+
+                    <div class="description">
+                        <h3>Beskrivelse</h3>
+                        <p>@item.Description</p>
+                    </div>
                 </div>
             </div>
+        </Authorized>
+        <NotAuthorized>
+            <p>Du skal være logget ind for at byde på denne auktion. <a href="/login">Log ind</a></p>
+            <div class="auctionpage-grid">
+                <div class="gallery-section">
+                    <img class="main-image" src="@MainImage" alt="@item.Name" />
+                    <div class="thumbnails">
+                        @foreach (var img in item.Images)
+                        {
+                            <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" @onclick="@(() => MainImage = img)" />
+                        }
+                    </div>
+                </div>
 
-            <div class="bid-input">
-                <input type="number" min="@((highestBid?.Amount ?? 0) + 50)" @bind="amount" placeholder="Indtast dit bud" />
-                <button class="bid-button" @onclick="SendBid">Byd nu</button>
-            </div>
+                <div class="details-section">
+                    <h1>@item.Name</h1>
 
-            <div class="meta">
-                <p><strong>Vurdering:</strong> @item.Value.ToString("N0") DKK</p>
-                <p><strong>Kategori:</strong> @item.Category</p>
-                <p><strong>Stand:</strong> @item.Condition</p>
-                <p><strong>Auktionshus:</strong> @auctionHouse.Name</p>
-            </div>
+                    <div class="price-timer">
+                        <div>
+                            <p class="label">Højeste bud</p>
+                            <p class="price">@(highestBid?.Amount.ToString("N0") ?? "–") DKK</p>
+                        </div>
+                        <div>
+                            <p class="label">Slutter om</p>
+                            <p class="time">@GetTimeLeft(auction.AuctionEnd)</p>
+                        </div>
+                    </div>
 
-            <div class="description">
-                <h3>Beskrivelse</h3>
-                <p>@item.Description</p>
+                    <div class="bid-input">
+                        <input type="number" min="@((highestBid?.Amount ?? 0) + 50)" placeholder="Log ind for at byde" disabled />
+                        <button class="bid-button" disabled>Byd nu</button>
+                    </div>
+
+                    <div class="meta">
+                        <p><strong>Vurdering:</strong> @item.Value.ToString("N0") DKK</p>
+                        <p><strong>Kategori:</strong> @item.Category</p>
+                        <p><strong>Stand:</strong> @item.Condition</p>
+                        <p><strong>Auktionshus:</strong> @auctionHouse.Name</p>
+                    </div>
+
+                    <div class="description">
+                        <h3>Beskrivelse</h3>
+                        <p>@item.Description</p>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        </NotAuthorized>
+    </AuthorizeView>
 }
 
 @code {
@@ -73,6 +126,7 @@ else
     private Bidding? highestBid;
     private AuctionHouse? auctionHouse;
     private int amount;
+    private string? userId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,32 +139,66 @@ else
                 ? await BiddingService.GetHighestBidAsync(auction.Id.ToString())
                 : null;
 
-            amount = highestBid.Amount+ 50; // Minimum bid is current highest bid + 50 DKK
-            
+            amount = (highestBid?.Amount ?? 0) + 50; // Minimum bid is current highest bid + 50 DKK
+
             if (item != null)
             {
                 auctionHouse = await AuctionHttpService.GetAuctionHouseById(item.AuctionHouseId);
                 MainImage = item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
             }
         }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+        else
+        {
+            userId = null;
+        }
     }
-    
+
     private async Task SendBid()
     {
-        if (auction == null || item == null || highestBid == null) return;
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        if (amount <= highestBid.Amount)
+        if (!user.Identity?.IsAuthenticated == true)
         {
-            // Notify user that bid must be higher than current highest bid
+            NavigationManager.NavigateTo("/login", forceLoad: true);
             return;
         }
 
-        var bid = new Bidding(amount, new Guid(), auction.Id);
+        if (auction == null || item == null) return;
 
-        await BiddingService.PlaceBidAsync(bid);
-        highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
-        amount = highestBid.Amount + 50; // Update amount for next bid
-        StateHasChanged(); // Refresh the UI to show updated bid
+        if (amount <= (highestBid?.Amount ?? 0))
+        {
+            // Vis en fejlmeddelelse til brugeren om, at buddet skal være højere (implementer UI feedback)
+            return;
+        }
+
+        var currentUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out Guid parsedUserId))
+        {
+            // Håndter fejl ved hentning af bruger-ID
+            return;
+        }
+
+        var bid = new Bidding(amount, parsedUserId, auction.Id); // Brug det hentede userId
+
+        try
+        {
+            await BiddingService.PlaceBidAsync(bid);
+            highestBid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+            amount = (highestBid?.Amount ?? 0) + 50; // Opdater beløbet for næste bud
+            StateHasChanged(); // Opdater UI
+        }
+        catch (Exception ex)
+        {
+            // Håndter fejl ved bud (implementer UI feedback)
+        }
     }
 
     private string GetTimeLeft(DateTime endTime)

@@ -2,6 +2,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider // Inject den
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -9,8 +10,6 @@
     <link rel="stylesheet" href="css/login.css" />
     <link rel="stylesheet" href="css/styles.css" />
 </head>
-
-
 
 <div class="login-container">
     <h3 class="crimson-text-bold">Login</h3>
@@ -32,9 +31,6 @@
     }
 </div>
 
-
-
-
 @code {
     private string username = string.Empty;
     private string password = string.Empty;
@@ -51,6 +47,11 @@
             {
                 var token = await response.Content.ReadAsStringAsync();
                 await localStorage.SetItemAsync("authToken", token);
+
+                // Informer AuthenticationStateProvider om den nye autentificeringstilstand
+                var customAuthStateProvider = (CustomAuthStateProvider)AuthenticationStateProvider;
+                customAuthStateProvider.MarkUserAsAuthenticated(token);
+
                 NavigationManager.NavigateTo("/");
             }
             else
