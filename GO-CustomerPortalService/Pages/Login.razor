@@ -1,8 +1,7 @@
 ﻿@page "/login"
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
-@inject HttpClient Http
 @inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthenticationStateProvider // Inject den
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -46,13 +45,8 @@
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
-                await localStorage.SetItemAsync("authToken", token);
-
-                // Informer AuthenticationStateProvider om den nye autentificeringstilstand
-                var customAuthStateProvider = (CustomAuthStateProvider)AuthenticationStateProvider;
-                customAuthStateProvider.MarkUserAsAuthenticated(token);
-
-                NavigationManager.NavigateTo("/");
+                // Send token som query parameter til callback siden
+                NavigationManager.NavigateTo($"/authentication/login-callback?token={Uri.EscapeDataString(token)}");
             }
             else
             {
