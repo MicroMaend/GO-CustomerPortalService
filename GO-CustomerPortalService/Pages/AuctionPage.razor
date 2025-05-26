@@ -118,8 +118,15 @@ else
                 MainImage = item.Images?.FirstOrDefault() ?? "/images/placeholder.jpg";
             }
 
-            // Hent alle bud for auktionen - brug din eksisterende metode
-            var allBids = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString());
+            var token = await LocalStorage.GetItemAsync<string>("authToken");
+
+if (!string.IsNullOrEmpty(token))
+{
+    Http.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+}
+
+var allBids = await BiddingService.GetBidsByAuctionIdAsync(auction.Id.ToString());
 
             // Tag de 3 nyeste bud
             var last3 = allBids.OrderByDescending(b => b.Date).Take(3).ToList();
