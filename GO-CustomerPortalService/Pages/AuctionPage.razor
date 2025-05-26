@@ -128,8 +128,8 @@ else
 
             foreach (var bid in last3)
             {
-                var user = await UserService.GetUserByIdAsync(bid.UserId);
-                lastThreeBids.Add(new BidWithUser { Bid = bid, Username = user?.Username ?? "Ukendt" });
+                var user = await UserService.GetUserByIdAsync(bid.UserId.ToString());
+                lastThreeBids.Add(new BidWithUser { Bid = bid, Username = user?.UserName ?? "Ukendt" });
             }
         }
     }
