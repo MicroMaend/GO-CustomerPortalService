@@ -5,6 +5,7 @@ public interface IUserService
 {
     Task<User?> GetUserByIdAsync(string userId);
     Task<User?> GetUserByNameAsync(string userName);
+    Task<string> GetUserNameByIdAsync(string userId);
     Task<List<User>> GetAllUsersAsync();
     Task<HttpStatusCode> CreateUserAsync(User user);
     Task UpdateUserAsync(string userId, User user);

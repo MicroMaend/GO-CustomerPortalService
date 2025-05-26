@@ -22,6 +22,11 @@ public class UserHttpService : IUserService
         return await _http.GetFromJsonAsync<User>($"{baseUrl}/user/name/{userName}");
     }
 
+    public async Task<string> GetUserNameByIdAsync(string userId)
+    {
+        return await _http.GetAsync($"{baseUrl}/username/{userId}").Result.Content.ReadAsStringAsync();
+    }
+
     public async Task<List<User>> GetAllUsersAsync()
     {
         return await _http.GetFromJsonAsync<List<User>>($"{baseUrl}/user/all");

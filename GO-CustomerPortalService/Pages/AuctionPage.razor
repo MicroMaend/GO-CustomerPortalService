@@ -80,7 +80,7 @@ else
                         @foreach (var bid in biddings.OrderBy(b => b.Date))
                         {
                             <div class="bid">
-                                <p><strong>@UserService.GetUserByIdAsync(bid.UserId.ToString()).Result.UserName</strong> bød <span class="amount">@bid.Amount.ToString("N0") DKK</span></p>
+                                <p><strong>@UserService.GetUserNameByIdAsync(bid.UserId.ToString())</strong> bød <span class="amount">@bid.Amount.ToString("N0") DKK</span></p>
                                 <p class="time">@bid.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</p>
                             </div>
                         }
