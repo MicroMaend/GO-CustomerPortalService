@@ -9,14 +9,13 @@
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="GOCore" Version="1.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.8" PrivateAssets="all" />
-    
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.8" /> 
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\images\" />
-  </ItemGroup>
+    <Content Include="Authentication\CustomAuthStateProvider.cs" /> </ItemGroup>
 
 </Project>
