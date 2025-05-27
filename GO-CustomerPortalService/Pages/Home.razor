@@ -1,5 +1,10 @@
 ﻿@page "/"
 @inject NavigationManager NavigationManager
+@using System.Web
+@using GOCore
+@inject IAuctionService AuctionService
+@inject ICatalogService CatalogService
+@inject IBiddingService BiddingService
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -80,30 +85,22 @@
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
             <div class="slider">
-                <div class="slide">
-                    <img src="/images/featuredauction_example1.jpg" alt="Designer Chair">
-                    <div class="slide-content">
-                        <h3>Designer Chair</h3>
-                        <p>Experience the elegance of modern design with this exclusive designer chair.</p>
-                        <button>Explore now</button>
-                    </div>
-                </div>
-                <div class="slide">
-                    <img src="/images/featuredauction_example2.jpg" alt="Painting">
-                    <div class="slide-content">
-                        <h3>Painting</h3>
-                        <p>Own a masterpiece! This stunning painting will elevate any space.</p>
-                        <button>Explore now</button>
-                    </div>
-                </div>
-                <div class="slide">
-                    <img src="/images/featuredauction_example3.jpg" alt="Vintage Electric Guitar">
-                    <div class="slide-content">
-                        <h3>Vintage Electric Guitar</h3>
-                        <p>Strum the strings of history with this rare vintage electric guitar.</p>
-                        <button>Explore now</button>
-                    </div>
-                </div>
+                <!-- Her kan du indsætte de faktiske auktioner -->
+                @foreach (var auction in filteredAuctions.Take(3))
+                {
+                    var item = itemLookup.GetValueOrDefault(auction.ItemId);
+                    if (item != null)
+                    {
+                        <div class="slide">
+                            <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" />
+                            <div class="slide-content">
+                                <h3>@Shorten(item.Name, 45)</h3>
+                                <p>@Shorten(item.Description, 100)</p>
+                                <button @onclick="@(() => NavigationManager.NavigateTo($"/auction/{auction.Id}"))">Se Auction</button>
+                            </div>
+                        </div>
+                    }
+                }
             </div>
 
             <!-- Flyt slider-dots her -->
@@ -119,39 +116,29 @@
         </div>
 
     </section>
+
     
-
     <section class="upcoming-auctions">
-        <h2 class="crimson-text-bold">Kommende Auktioner</h2>
+        <h2 class="crimson-text-bold">Populære Auctioner</h2>
         <div class="upcoming-auctions-container">
-            <div class="auction-card">
-                <img src="/images/upcoming_auction1.jpg" alt="Antique Vase">
-                <div class="auction-card-content">
-                    <h3 class="crimson-text-semibold">Antique Vase</h3>
-                    <p class="crimson-text-regular">A rare 18th-century vase in pristine condition.</p>
-                    <p class="auction-timer crimson-text-regular" data-start-time="2025-12-01T15:00:00">Beginning in: <span>Loading...</span></p>
-                </div>
-                <button class="auction-card-button">View Auction</button>
-            </div>
-
-            <div class="auction-card">
-                <img src="/images/upcoming_auction2.jpg" alt="Luxury Watch">
-                <div class="auction-card-content">
-                    <h3 class="crimson-text-semibold">Luxury Watch</h3>
-                    <p class="crimson-text-regular">A timeless piece from a renowned Swiss brand.</p>
-                    <p class="auction-timer crimson-text-regular" data-start-time="2025-12-01T15:00:00">Beginning in: <span>Loading...</span></p>
-                </div>
-                <button class="auction-card-button">View Auction</button>
-            </div>
-            <div class="auction-card">
-                <img src="/images/upcoming_auction3.jpg" alt="Classic Car">
-                <div class="auction-card-content">
-                    <h3 class="crimson-text-semibold">Classic Car</h3>
-                    <p class="crimson-text-regular">A beautifully restored 1960s classic car.</p>
-                    <p class="auction-timer crimson-text-regular" data-start-time="2025-12-01T15:00:00">Beginning in: <span>Loading...</span></p>
-                </div>
-                <button class="auction-card-button">View Auction</button>
-            </div>
+            @foreach (var auction in upcoming.Take(3))
+            {
+                var item = itemLookup.GetValueOrDefault(auction.ItemId);
+                if (item != null)
+                {
+                    <div class="auction-card">
+                        <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" />
+                        <div class="auction-card-content">
+                            <h3 class="crimson-text-semibold">@Shorten(item.Name, 45)</h3>
+                            <p class="crimson-text-regular">@Shorten(item.Description, 100)</p>
+                            <p class="auction-timer crimson-text-regular" data-start-time="@auction.AuctionStart">
+                                Slutter: <span>@auction.AuctionEnd</span>
+                            </p>
+                        </div>
+                        <button class="auction-card-button" @onclick="@(() => NavigationManager.NavigateTo($"/auction/{auction.Id}"))">Se Auktion</button>
+                    </div>
+                }
+            }
         </div>
     </section>
 
@@ -160,6 +147,110 @@
 </main>
 
 @code {
+    private Dictionary<Guid, Bidding?> highestBids = new();
+    private string selectedCategory = "";
+    private string selectedAuctionHouse = "";
+    private string selectedSort = "popular";
+
+    private List<string> categories = new();
+    private List<string> auctionHouses = new();
+
+    private List<Auction> allAuctions = new();
+    private List<Auction> filteredAuctions = new();
+    private List<Auction> upcoming => allAuctions
+    .Where(a => a.AuctionEnd > DateTime.UtcNow)
+    .OrderBy(a => a.AuctionEnd)
+    .ToList();
+
+    private Dictionary<Guid, Item> itemLookup = new();
+    private Dictionary<Guid, Bidding?> bidLookup = new();
+    private Dictionary<Guid, string> auctionHouseLookup = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        allAuctions = await AuctionService.GetAllAuctionsAsync();
+        var allItems = await CatalogService.GetAllItemsAsync();
+        var allAuctionHouses = await AuctionService.GetAllAuctionHouses();
+
+        // Build lookup data
+        itemLookup = allItems.ToDictionary(i => i.Id, i => i);
+        auctionHouseLookup = allAuctionHouses.ToDictionary(h => h.Id, h => h.Name);
+
+        // Get highest bids
+        foreach (var auction in allAuctions)
+        {
+            var bid = await BiddingService.GetHighestBidAsync(auction.Id.ToString());
+            highestBids[auction.Id] = bid;
+
+            if (auction.HighestBidId != Guid.Empty)
+            {
+                bidLookup[auction.Id] = bid;
+            }
+            else
+            {
+                bidLookup[auction.Id] = null;
+            }
+        }
+
+        // Filter categories and auction houses
+        categories = allItems
+            .Select(i => i.Category)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct()
+            .ToList();
+
+        auctionHouses = allItems
+            .Select(i => auctionHouseLookup.GetValueOrDefault(i.AuctionHouseId))
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct()
+            .ToList();
+
+        // Handle search query
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query).Get("query");
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            allAuctions = allAuctions
+                .Where(a =>
+                {
+                    var item = itemLookup.GetValueOrDefault(a.ItemId);
+                    return item != null && item.Name.Contains(query, StringComparison.OrdinalIgnoreCase);
+                })
+                .ToList();
+        }
+
+        ApplyFilters();
+    }
+    private void ApplyFilters()
+    {
+        filteredAuctions = allAuctions
+            .Where(a =>
+            {
+                var item = itemLookup.GetValueOrDefault(a.ItemId);
+                if (item == null) return false;
+
+                return (string.IsNullOrEmpty(selectedCategory) ||
+                        string.Equals(item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase)) &&
+                       (string.IsNullOrEmpty(selectedAuctionHouse) ||
+                        auctionHouseLookup.GetValueOrDefault(item.AuctionHouseId)?.Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase) == true);
+            })
+            .ToList();
+
+        filteredAuctions = selectedSort switch
+        {
+            "highestBid" => filteredAuctions.OrderByDescending(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
+            "lowestBid" => filteredAuctions.OrderBy(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
+            "endingSoon" => filteredAuctions.OrderBy(a => a.AuctionEnd).ToList(),
+            "lowestEstimate" => filteredAuctions.OrderBy(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
+            "highestEstimate" => filteredAuctions.OrderByDescending(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
+            _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList()
+        };
+    }
+    private string Shorten(string text, int max)
+    {
+        return string.IsNullOrEmpty(text) || text.Length <= max ? text : text.Substring(0, max) + "...";
+    }
 	
 }
 

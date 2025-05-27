@@ -17,7 +17,7 @@ RUN dotnet publish GO-CustomerPortalService.csproj -c Release -o /app/publish
 FROM nginx:alpine AS final
 
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
-COPY GO-CustomerPortalService/nginx.conf /etc/nginx/nginx.conf
+COPY GO-CustomerPortalService/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
