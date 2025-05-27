@@ -20,7 +20,7 @@ FROM nginx:alpine AS final
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
 
 # Copy nginx template instead of direct config
-COPY GO-CustomerPortalService/nginx.conf /etc/nginx/templates/default.conf.template
+COPY GO-CustomerPortalService/nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Install envsubst if not already available (usually included in nginx:alpine)
 RUN apk add --no-cache gettext
