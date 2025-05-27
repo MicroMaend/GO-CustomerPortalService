@@ -28,7 +28,7 @@ else
             <div class="thumbnails">
                 @foreach (var img in item.Images)
                 {
-                    <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" @onclick="@(() => MainImage = img)" />
+                    <img class="thumb @(img == MainImage ? "selected" : "")" src="@img" loading="lazy" @onclick="@(() => MainImage = img)" />
                 }
             </div>
         </div>

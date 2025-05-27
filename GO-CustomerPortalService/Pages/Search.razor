@@ -59,7 +59,7 @@
                     if (item is not null)
                     {
                         <div class="auction-card" @onclick="@(() => NavigateToAuction(auction.Id))">
-                            <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" />
+                            <img src="@((item.Images?.FirstOrDefault()) ?? "/images/placeholder.jpg")" alt="@item.Name" loading="lazy" />
                             <div class="auction-details">
                                 <h4>@Shorten(item.Name, 45)</h4>
                                 <p class="time-left">@GetTimeLeft(auction.AuctionEnd)</p>

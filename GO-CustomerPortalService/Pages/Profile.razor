@@ -1,11 +1,111 @@
 ﻿@page "/profile"
+@using System.Security.Claims
+@using Blazored.LocalStorage
+@using GOCore
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
+@inject IBiddingService BiddingService
+@inject IAuctionService AuctionService
+@inject ICatalogService CatalogService
+
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
 <link href="css/profile.css" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
 
-@code {
+//Shows my auctions that I have bid on, and If my bid is the highest, it will show a notice that I have the highest bid.
+<div class="profile-container">
+    <h3 class="crimson-text-bold">Mine auktioner</h3>
+    <div class="bids-list">
+        @if (myBids.Count == 0)
+        {
+            <p>Du har ikke afgivet nogen bud endnu.</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var bid in myBids)
+                {
+                    var auction = Auctions.FirstOrDefault(a => a.Id == bid.AuctionId);
+                    var item = items.FirstOrDefault(i => i.Id == auction?.ItemId);
+                    
+                    if (auction != null && item != null)
+                    {
+                        <li class="bid-item">
+                            <div class="bid-details">
+                                <h4>@item.Name</h4>
+                                <p>Højeste bud: @bid.Amount DKK</p>
+                                <p>Auktionsslut: @auction.AuctionEnd.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                            @if (auction.HighestBidId.ToString() == GetUserIdFromToken(token))
+                            {
+                                <span class="highest-bid">Du har det højeste bud!</span>
+                            }
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    
 
+
+
+</div>
+
+    @code {
+    private string token;
+    private List<Bidding> myBids = new List<Bidding>();
+    private List<Auction> Auctions = new List<Auction>();
+    private List<Item> items = new List<Item>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        token = await LocalStorage.GetItemAsync<string>("authToken");
+        var userId = GetUserIdFromToken(token);
+        var biddings = await BiddingService.GetBidsByUserIdAsync(userId);
+        
+        if (biddings != null)
+        {
+            var distincedBiddings = biddings.OrderByDescending(b => b.Date).DistinctBy(a=> a.AuctionId);
+            myBids = distincedBiddings.ToList();
+            foreach (var bid in myBids)
+            {
+                var auction = await AuctionService.GetByIdAsync(bid.AuctionId);
+                if (auction != null)
+                {
+                    Auctions.Add(auction);
+                }
+            }
+
+            foreach (var auction in Auctions)
+            {
+                var item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
+                if (item != null)
+                {
+                    items.Add(item);
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("No bids found for the user.");
+        }
+    }
+    
+    
+    private string? GetUserIdFromToken(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            Console.WriteLine("Token is null or empty.");
+            return null;
+        }
+        
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        return jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+    }
 }
