@@ -1,11 +1,111 @@
 ﻿@page "/profile"
+@using System.Security.Claims
+@using Blazored.LocalStorage
+@using GOCore
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
+@inject IBiddingService BiddingService
+@inject IAuctionService AuctionService
+@inject ICatalogService CatalogService
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
 <link href="css/profile.css" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
 
-@code {
 
+<div class="profile-container">
+    <h3 class="crimson-text-bold">Mine auktioner</h3>
+    <div class="bids-list">
+        @if (myBids.Count == 0)
+        {
+            <p>Du har ikke afgivet nogen bud endnu.</p>
+        }
+        else
+        {
+            @foreach (var bid in myBids)
+            {
+                var auction = Auctions.FirstOrDefault(a => a.Id == bid.AuctionId);
+                var item = items.FirstOrDefault(i => i.Id == auction?.ItemId);
+                if (auction != null && item != null)
+                {
+                    bool isHighestBid = myBids.Where(b => b.Id == auction.HighestBidId).Count() == 1;
+                    <div class="bid-row">
+                        <div class="bid-image">
+                            <img src="@item.Images.First()" alt="@item.Name" />
+                        </div>
+                        <div class="bid-info">
+                            <h4>
+                                <a href="/auction/@auction.Id">@item.Name</a>
+                            </h4>
+                            <p>Auktionsslut: @auction.AuctionEnd.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p class="@((isHighestBid ? "bid-amount-highest" : "bid-amount-lowest"))">
+                                Dit bud: @bid.Amount DKK
+                            </p>
+                            @if (isHighestBid)
+                            {
+                                <span class="highest-bid">Du har det højeste bud!</span>
+                            }
+                            else
+                            {
+                                <span class="not-highest-bid">Du har ikke det højeste bud.</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private string token;
+    private List<Bidding> myBids = new List<Bidding>();
+    private List<Auction> Auctions = new List<Auction>();
+    private List<Item> items = new List<Item>();
+    private string userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        token = await LocalStorage.GetItemAsync<string>("authToken");
+        userId = GetUserIdFromToken(token);
+        var biddings = await BiddingService.GetBidsByUserIdAsync(userId);
+
+        if (biddings != null)
+        {
+            var distincedBiddings = biddings.OrderByDescending(b => b.Date).DistinctBy(a => a.AuctionId);
+            myBids = distincedBiddings.ToList();
+
+            foreach (var bid in myBids)
+            {
+                var auction = await AuctionService.GetByIdAsync(bid.AuctionId);
+                if (auction != null)
+                {
+                    Auctions.Add(auction);
+                    var item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
+                    if (item != null)
+                    {
+                        items.Add(item);
+                    }
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("No bids found for the user.");
+        }
+    }
+
+    private string? GetUserIdFromToken(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            Console.WriteLine("Token is null or empty.");
+            return null;
+        }
+
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        return jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+    }
 }
