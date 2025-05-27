@@ -13,16 +13,16 @@
 <div class="login-container">
     <h3 class="crimson-text-bold">Login</h3>
     <div class="form-group">
-        <label>Username</label>
-        <input class="form-control" @bind="username" placeholder="Enter username" />
+        <label>Brugernavn</label>
+        <input class="form-control" @bind="username" placeholder="Indtast brugernavn" />
     </div>
     <div class="form-group">
-        <label>Password</label>
-        <input type="password" class="form-control" @bind="password" placeholder="Enter password" />
+        <label>Adgangskode</label>
+        <input type="password" class="form-control" @bind="password" placeholder="Indtast adgangskode" />
     </div>
     <div class="form-group">
         <button class="btn btn-primary" @onclick="LoginUser">Login</button>
-        <button class="btn btn-secondary" @onclick="NavigateToCreateAccount">Create Account</button>
+        <button class="btn btn-secondary" @onclick="NavigateToCreateAccount">Opret Bruger</button>
     </div>
     @if (!string.IsNullOrEmpty(errorMessage))
     {
@@ -56,7 +56,8 @@ private async Task LoginUser()
             if (tokenResponse != null && !string.IsNullOrEmpty(tokenResponse.Token))
             {
                 await localStorage.SetItemAsync("authToken", tokenResponse.Token);
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("/",forceLoad: true);
+                StateHasChanged();
             }
             else
             {

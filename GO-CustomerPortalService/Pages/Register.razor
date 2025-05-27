@@ -66,6 +66,11 @@
 
     private async Task RegisterUser()
     {
+        if (user.Id == Guid.Empty)
+        {
+            user.Id = Guid.NewGuid();
+        }
+        
         try
         {
             var response = await UserHttpService.CreateUserAsync(user);
