@@ -56,7 +56,7 @@ private async Task LoginUser()
             if (tokenResponse != null && !string.IsNullOrEmpty(tokenResponse.Token))
             {
                 await localStorage.SetItemAsync("authToken", tokenResponse.Token);
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("/",forceLoad: true);
                 StateHasChanged();
             }
             else
