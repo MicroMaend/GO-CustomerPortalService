@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
 
 <div class="page">
     <header>
@@ -13,8 +15,15 @@
             <input type="text" @bind="searchQuery" placeholder="Search for auctions..." class="inter-regular" @onkeydown="HandleKeyPress" />
         </div>
         <div>
-            <button @onclick="ToLogin" class="inter-bold">Login</button>
-            <button @onclick="ToRegister" class="register inter-bold">Register</button>
+            @if(isAuthenticated)
+            {
+                <button @onclick="Logout">Log ud</button>
+            }
+            else
+            {
+                <button @onclick="ToLogin" class="inter-bold">Login</button>
+                <button @onclick="ToRegister" class="register inter-bold">Register</button>
+            }
         </div>
     </header>
 
@@ -53,6 +62,12 @@
 
 @code {
     private string searchQuery = string.Empty;
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await localStorage.ContainKeyAsync("authToken");
+    }
 
     private void HandleKeyPress(KeyboardEventArgs e)
     {
@@ -82,4 +97,12 @@
     {
         NavigationManager.NavigateTo("/register");
     }
+    
+    private void Logout()
+    {
+        localStorage.RemoveItemAsync("authToken");
+        NavigationManager.NavigateTo("/login");
+        StateHasChanged();
+    }
+    
 }

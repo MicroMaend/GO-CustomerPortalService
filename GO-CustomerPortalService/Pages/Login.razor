@@ -57,6 +57,7 @@ private async Task LoginUser()
             {
                 await localStorage.SetItemAsync("authToken", tokenResponse.Token);
                 NavigationManager.NavigateTo("/");
+                StateHasChanged();
             }
             else
             {
