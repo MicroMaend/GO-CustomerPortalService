@@ -17,6 +17,7 @@
         <div>
             @if(isAuthenticated)
             {
+                <button @onclick="ToMyBiddings">Mine bud</button>
                 <button @onclick="Logout">Log ud</button>
             }
             else
@@ -97,6 +98,11 @@
     private void ToLogin()
     {
         NavigationManager.NavigateTo("/login");
+    }
+    
+    private void ToMyBiddings()
+    {
+        NavigationManager.NavigateTo("/profile");
     }
 
     private void ToRegister()

@@ -8,13 +8,12 @@
 @inject IAuctionService AuctionService
 @inject ICatalogService CatalogService
 
-
 <PageTitle>Grøn & Olsen</PageTitle>
 
 <link href="css/profile.css" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
 
-//Shows my auctions that I have bid on, and If my bid is the highest, it will show a notice that I have the highest bid.
+
 <div class="profile-container">
     <h3 class="crimson-text-bold">Mine auktioner</h3>
     <div class="bids-list">
@@ -24,68 +23,70 @@
         }
         else
         {
-            <ul>
-                @foreach (var bid in myBids)
+            @foreach (var bid in myBids)
+            {
+                var auction = Auctions.FirstOrDefault(a => a.Id == bid.AuctionId);
+                var item = items.FirstOrDefault(i => i.Id == auction?.ItemId);
+                if (auction != null && item != null)
                 {
-                    var auction = Auctions.FirstOrDefault(a => a.Id == bid.AuctionId);
-                    var item = items.FirstOrDefault(i => i.Id == auction?.ItemId);
-                    
-                    if (auction != null && item != null)
-                    {
-                        <li class="bid-item">
-                            <div class="bid-details">
-                                <h4>@item.Name</h4>
-                                <p>Højeste bud: @bid.Amount DKK</p>
-                                <p>Auktionsslut: @auction.AuctionEnd.ToString("dd/MM/yyyy HH:mm")</p>
-                            </div>
-                            @if (auction.HighestBidId.ToString() == GetUserIdFromToken(token))
+                    bool isHighestBid = myBids.Where(b => b.Id == auction.HighestBidId).Count() == 1;
+                    <div class="bid-row">
+                        <div class="bid-image">
+                            <img src="@item.Images.First()" alt="@item.Name" />
+                        </div>
+                        <div class="bid-info">
+                            <h4>
+                                <a href="/auction/@auction.Id">@item.Name</a>
+                            </h4>
+                            <p>Auktionsslut: @auction.AuctionEnd.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p class="@((isHighestBid ? "bid-amount-highest" : "bid-amount-lowest"))">
+                                Dit bud: @bid.Amount DKK
+                            </p>
+                            @if (isHighestBid)
                             {
                                 <span class="highest-bid">Du har det højeste bud!</span>
                             }
-                        </li>
-                    }
+                            else
+                            {
+                                <span class="not-highest-bid">Du har ikke det højeste bud.</span>
+                            }
+                        </div>
+                    </div>
                 }
-            </ul>
+            }
         }
     </div>
-    
-
-
-
 </div>
 
-    @code {
+@code {
     private string token;
     private List<Bidding> myBids = new List<Bidding>();
     private List<Auction> Auctions = new List<Auction>();
     private List<Item> items = new List<Item>();
-
+    private string userId;
 
     protected override async Task OnInitializedAsync()
     {
         token = await LocalStorage.GetItemAsync<string>("authToken");
-        var userId = GetUserIdFromToken(token);
+        userId = GetUserIdFromToken(token);
         var biddings = await BiddingService.GetBidsByUserIdAsync(userId);
-        
+
         if (biddings != null)
         {
-            var distincedBiddings = biddings.OrderByDescending(b => b.Date).DistinctBy(a=> a.AuctionId);
+            var distincedBiddings = biddings.OrderByDescending(b => b.Date).DistinctBy(a => a.AuctionId);
             myBids = distincedBiddings.ToList();
+
             foreach (var bid in myBids)
             {
                 var auction = await AuctionService.GetByIdAsync(bid.AuctionId);
                 if (auction != null)
                 {
                     Auctions.Add(auction);
-                }
-            }
-
-            foreach (var auction in Auctions)
-            {
-                var item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
-                if (item != null)
-                {
-                    items.Add(item);
+                    var item = await CatalogService.GetItemByIdAsync(auction.ItemId.ToString());
+                    if (item != null)
+                    {
+                        items.Add(item);
+                    }
                 }
             }
         }
@@ -94,8 +95,7 @@
             Console.WriteLine("No bids found for the user.");
         }
     }
-    
-    
+
     private string? GetUserIdFromToken(string token)
     {
         if (string.IsNullOrEmpty(token))
@@ -103,7 +103,7 @@
             Console.WriteLine("Token is null or empty.");
             return null;
         }
-        
+
         var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
         return jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;

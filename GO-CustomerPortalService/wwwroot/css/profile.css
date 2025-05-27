@@ -1,1 +1,40 @@
-﻿
+﻿.bid-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 1rem;
+}
+
+.profile-container{margin-top: 100px;}
+
+.bid-image img {
+    max-width: 150px;
+    max-height: 150px;
+    object-fit: cover;
+    margin-right: 1rem;
+}
+
+.bid-info {
+    flex: 1;
+}
+
+.bid-amount-highest {
+    color: green;
+    font-weight: bold;
+}
+
+.bid-amount-lowest {
+    color: red;
+    font-weight: bold;
+}
+
+.highest-bid {
+    color: green;
+    font-weight: bold;
+}
+
+.not-highest-bid {
+    color: red;
+    font-weight: bold;
+}
