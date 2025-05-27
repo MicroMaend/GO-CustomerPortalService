@@ -121,7 +121,7 @@
 
     
     <section class="upcoming-auctions">
-        <h2 class="crimson-text-bold">Kommende Auktioner</h2>
+        <h2 class="crimson-text-bold">Populære Auctioner</h2>
         <div class="upcoming-auctions-container">
             @foreach (var auction in upcoming.Take(3))
             {
@@ -134,7 +134,7 @@
                             <h3 class="crimson-text-semibold">@Shorten(item.Name, 45)</h3>
                             <p class="crimson-text-regular">@Shorten(item.Description, 100)</p>
                             <p class="auction-timer crimson-text-regular" data-start-time="@auction.AuctionStart">
-                                Begynder om: <span>Loading...</span>
+                                Slutter: <span>@auction.AuctionEnd</span>
                             </p>
                         </div>
                         <button class="auction-card-button" @onclick="@(() => NavigationManager.NavigateTo($"/auction/{auction.Id}"))">Se Auktion</button>
