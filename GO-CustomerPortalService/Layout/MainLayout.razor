@@ -66,7 +66,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        checkIfAuthenticated();
+    }
+
+    public async Task checkIfAuthenticated()
+    {
         isAuthenticated = await localStorage.ContainKeyAsync("authToken");
+        StateHasChanged();
     }
 
     private void HandleKeyPress(KeyboardEventArgs e)
@@ -102,7 +108,7 @@
     {
         localStorage.RemoveItemAsync("authToken");
         NavigationManager.NavigateTo("/login");
-        StateHasChanged();
+        checkIfAuthenticated();
     }
     
 }
