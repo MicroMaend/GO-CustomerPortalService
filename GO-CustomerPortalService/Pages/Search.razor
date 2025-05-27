@@ -15,22 +15,23 @@
     <aside class="sidebar">
         <h4>Kategorier</h4>
         <ul>
-            <li @onclick="@(() => selectedCategory = "")" class="@((selectedCategory == "") ? "active" : "")">Alle kategorier</li>
+            <li @onclick="@(() => OnCategorySelected(""))" class="@((selectedCategory == "") ? "active" : "")">Alle kategorier</li>
             @foreach (var category in categories)
             {
-                <li @onclick="@(() => selectedCategory = category)" class="@((selectedCategory == category) ? "active" : "")">@category</li>
+                <li @onclick="@(() => OnCategorySelected(category))" class="@((selectedCategory == category) ? "active" : "")">@category</li>
             }
         </ul>
 
         <h4 style="margin-top: 2rem;">Auktionshuse</h4>
         <ul>
-            <li @onclick="@(() => selectedAuctionHouse = "")" class="@((selectedAuctionHouse == "") ? "active" : "")">Alle huse</li>
+            <li @onclick="@(() => OnAuctionHouseSelected(""))" class="@((selectedAuctionHouse == "") ? "active" : "")">Alle huse</li>
             @foreach (var house in auctionHouses)
             {
-                <li @onclick="@(() => selectedAuctionHouse = house)" class="@((selectedAuctionHouse == house) ? "active" : "")">@house</li>
+                <li @onclick="@(() => OnAuctionHouseSelected(house))" class="@((selectedAuctionHouse == house) ? "active" : "")">@house</li>
             }
         </ul>
     </aside>
+
 
     <main class="auction-content">
         <div class="auction-header">
@@ -135,6 +136,19 @@
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = HttpUtility.ParseQueryString(uri.Query).Get("query");
 
+        var categoryParam = HttpUtility.ParseQueryString(uri.Query).Get("category");
+        if (!string.IsNullOrWhiteSpace(categoryParam))
+        {
+            selectedCategory = categoryParam;
+        }
+
+        var auctionHouseParam = HttpUtility.ParseQueryString(uri.Query).Get("auctionHouse");
+        if (!string.IsNullOrWhiteSpace(auctionHouseParam))
+        {
+            selectedAuctionHouse = auctionHouseParam;
+        }
+
+
         if (!string.IsNullOrWhiteSpace(query))
         {
             allAuctions = allAuctions
@@ -146,35 +160,47 @@
                 .ToList();
         }
 
-        ApplyFilters();
+       await ApplyFilters();
     }
 
 
-    private void ApplyFilters()
+    private async Task ApplyFilters()
     {
-        filteredAuctions = allAuctions
-            .Where(a =>
+        IEnumerable<Auction> auctionsToFilter = allAuctions;
+
+        if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            // Hent kun items i den valgte kategori
+            var categoryItems = await CatalogService.GetItemsByCategoryAsync(selectedCategory);
+            var matchingItemIds = categoryItems.Select(i => i.Id).ToHashSet();
+
+            // Filtrér auktioner baseret på de items
+            auctionsToFilter = auctionsToFilter.Where(a => matchingItemIds.Contains(a.ItemId));
+        }
+
+        if (!string.IsNullOrEmpty(selectedAuctionHouse))
+        {
+            auctionsToFilter = auctionsToFilter.Where(a =>
             {
                 var item = itemLookup.GetValueOrDefault(a.ItemId);
-                if (item == null) return false;
-
-                return (string.IsNullOrEmpty(selectedCategory) ||
-                        string.Equals(item.Category?.Trim(), selectedCategory.Trim(), StringComparison.OrdinalIgnoreCase)) &&
-                       (string.IsNullOrEmpty(selectedAuctionHouse) ||
-                        auctionHouseLookup.GetValueOrDefault(item.AuctionHouseId)?.Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase) == true);
-            })
-            .ToList();
+                return item != null &&
+                       auctionHouseLookup.GetValueOrDefault(item.AuctionHouseId)?
+                       .Equals(selectedAuctionHouse, StringComparison.OrdinalIgnoreCase) == true;
+            });
+        }
 
         filteredAuctions = selectedSort switch
         {
-            "highestBid" => filteredAuctions.OrderByDescending(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
-            "lowestBid" => filteredAuctions.OrderBy(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
-            "endingSoon" => filteredAuctions.OrderBy(a => a.AuctionEnd).ToList(),
-            "lowestEstimate" => filteredAuctions.OrderBy(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
-            "highestEstimate" => filteredAuctions.OrderByDescending(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
-            _ => filteredAuctions.OrderByDescending(a => a.AuctionEnd).ToList()
+            "highestBid" => auctionsToFilter.OrderByDescending(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
+            "lowestBid" => auctionsToFilter.OrderBy(a => bidLookup.GetValueOrDefault(a.Id)?.Amount ?? 0).ToList(),
+            "endingSoon" => auctionsToFilter.OrderBy(a => a.AuctionEnd).ToList(),
+            "lowestEstimate" => auctionsToFilter.OrderBy(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
+            "highestEstimate" => auctionsToFilter.OrderByDescending(a => itemLookup.GetValueOrDefault(a.ItemId)?.Value ?? 0).ToList(),
+            _ => auctionsToFilter.OrderByDescending(a => a.AuctionEnd).ToList()
         };
     }
+
+
 
     private void NavigateToAuction(Guid id)
     {
@@ -194,5 +220,17 @@
     private string Shorten(string text, int max)
     {
         return string.IsNullOrEmpty(text) || text.Length <= max ? text : text.Substring(0, max) + "...";
+    }
+
+    private async Task OnCategorySelected(string category)
+    {
+        selectedCategory = category;
+        await ApplyFilters();
+    }
+
+    private async Task OnAuctionHouseSelected(string house)
+    {
+        selectedAuctionHouse = house;
+        await ApplyFilters();
     }
 }
