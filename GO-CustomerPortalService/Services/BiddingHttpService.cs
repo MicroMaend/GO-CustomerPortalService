@@ -5,7 +5,8 @@ using GOCore;
 public class BiddingHttpService : IBiddingService
 {
     private readonly HttpClient _http;
-    private const string baseUrl = "http://localhost:5002";
+    //private const string baseUrl = "http://localhost:5002";
+    private const string baseUrl = "/api";
 
     public BiddingHttpService(HttpClient http)
     {

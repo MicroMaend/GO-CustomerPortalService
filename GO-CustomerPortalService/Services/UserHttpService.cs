@@ -5,7 +5,9 @@ using GOCore;
 public class UserHttpService : IUserService
 {
     private readonly HttpClient _http;
-    private const string baseUrl = "http://localhost:5001";
+    //private const string baseUrl = "http://localhost:5001";
+
+    private const string baseUrl = "/api";
 
     public UserHttpService(HttpClient http)
     {
