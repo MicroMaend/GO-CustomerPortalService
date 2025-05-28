@@ -9,67 +9,62 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # API routes - videresend hele stien inkl. /api
+    # API routes - fjern /api prefixet når vi sender videre
     location /api/auction {
-        proxy_pass ${AUCTION_SERVICE_URL}/api/auction;
+        proxy_pass ${AUCTION_SERVICE_URL}/auction;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Add timeout settings
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
 
     location /api/users {
-        proxy_pass ${USER_SERVICE_URL}/api/users;
+        proxy_pass ${USER_SERVICE_URL}/users;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Add timeout settings
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
 
     location /api/bidding {
-        proxy_pass ${BIDDING_SERVICE_URL}/api/bidding;
+        proxy_pass ${BIDDING_SERVICE_URL}/bidding;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Add timeout settings
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
 
     location /api/auth {
-        proxy_pass ${AUTH_SERVICE_URL}/api/auth;
+        proxy_pass ${AUTH_SERVICE_URL}/auth;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Add timeout settings
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
 
     location /api/catalog {
-        proxy_pass ${CATALOG_SERVICE_URL}/api/catalog;
+        proxy_pass ${CATALOG_SERVICE_URL}/catalog;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Add timeout settings
         proxy_connect_timeout 30s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
