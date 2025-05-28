@@ -9,9 +9,9 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # API routes using environment variables
-    location /api/auction/ {
-        proxy_pass ${AUCTION_SERVICE_URL}/;
+    # API routes - videresend hele stien inkl. /api
+    location /api/auction {
+        proxy_pass ${AUCTION_SERVICE_URL}/auction;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -23,8 +23,8 @@ server {
         proxy_read_timeout 30s;
     }
 
-    location /api/users/ {
-        proxy_pass ${USER_SERVICE_URL}/;
+    location /api/users {
+        proxy_pass ${USER_SERVICE_URL}/users;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -36,8 +36,8 @@ server {
         proxy_read_timeout 30s;
     }
 
-    location /api/bidding/ {
-        proxy_pass ${BIDDING_SERVICE_URL}/;
+    location /api/bidding {
+        proxy_pass ${BIDDING_SERVICE_URL}/bidding;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -49,8 +49,8 @@ server {
         proxy_read_timeout 30s;
     }
 
-    location /api/auth/ {
-        proxy_pass ${AUTH_SERVICE_URL}/auth/;
+    location /api/auth {
+        proxy_pass ${AUTH_SERVICE_URL}/auth;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -62,8 +62,8 @@ server {
         proxy_read_timeout 30s;
     }
 
-    location /api/catalog/ {
-        proxy_pass ${CATALOG_SERVICE_URL}/;
+    location /api/catalog {
+        proxy_pass ${CATALOG_SERVICE_URL}/catalog;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
