@@ -1,17 +1,17 @@
 server {
     listen 80;
-
+    
     # Serve Blazor frontend
     root /usr/share/nginx/html;
     index index.html;
-
+    
     location / {
         try_files $uri $uri/ /index.html;
     }
-
-    # API routes - fjern /api prefixet når vi sender videre
+    
+    # API routes - brug interne service navne for bedre performance og pålidelighed
     location /api/auction {
-        proxy_pass ${AUCTION_SERVICE_URL}/auction;
+        proxy_pass http://go-auctionservice/auction;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -21,9 +21,9 @@ server {
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
-
+    
     location /api/users {
-        proxy_pass ${USER_SERVICE_URL}/users;
+        proxy_pass http://go-userservice/users;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -33,9 +33,9 @@ server {
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
-
+    
     location /api/bidding {
-        proxy_pass ${BIDDING_SERVICE_URL}/bidding;
+        proxy_pass http://go-biddingservice/bidding;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -45,9 +45,9 @@ server {
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
-
+    
     location /api/auth {
-        proxy_pass ${AUTH_SERVICE_URL}/auth;
+        proxy_pass http://go-authservice/auth;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -57,9 +57,9 @@ server {
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
     }
-
+    
     location /api/catalog {
-        proxy_pass ${CATALOG_SERVICE_URL}/catalog;
+        proxy_pass http://go-catalogservice/catalog;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
