@@ -14,6 +14,7 @@ builder.Services.AddScoped<IAuctionService, AuctionHttpService>();
 builder.Services.AddScoped<IBiddingService, BiddingHttpService>();
 builder.Services.AddScoped<ICatalogService, CatalogHttpService>();
 builder.Services.AddScoped<IUserService, UserHttpService>();
+builder.Services.AddScoped<IAuthService, AuthHttpService>();
 
 
 await builder.Build().RunAsync();
