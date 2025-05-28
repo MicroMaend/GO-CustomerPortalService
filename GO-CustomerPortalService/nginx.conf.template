@@ -11,7 +11,7 @@ server {
 
     # API routes - videresend hele stien inkl. /api
     location /api/auction {
-        proxy_pass ${AUCTION_SERVICE_URL}/auction;
+        proxy_pass ${AUCTION_SERVICE_URL}/api/auction;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -24,7 +24,7 @@ server {
     }
 
     location /api/users {
-        proxy_pass ${USER_SERVICE_URL}/users;
+        proxy_pass ${USER_SERVICE_URL}/api/users;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -37,7 +37,7 @@ server {
     }
 
     location /api/bidding {
-        proxy_pass ${BIDDING_SERVICE_URL}/bidding;
+        proxy_pass ${BIDDING_SERVICE_URL}/api/bidding;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -50,7 +50,7 @@ server {
     }
 
     location /api/auth {
-        proxy_pass ${AUTH_SERVICE_URL}/auth;
+        proxy_pass ${AUTH_SERVICE_URL}/api/auth;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -63,7 +63,7 @@ server {
     }
 
     location /api/catalog {
-        proxy_pass ${CATALOG_SERVICE_URL}/catalog;
+        proxy_pass ${CATALOG_SERVICE_URL}/api/catalog;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
