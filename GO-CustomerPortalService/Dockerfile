@@ -19,30 +19,35 @@ FROM nginx:alpine AS final
 # Copy the built app
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
 
-# Copy nginx template instead of direct config
+# Remove default nginx config to ensure template is used
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+# Copy nginx template
 COPY GO-CustomerPortalService/nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Install envsubst if not already available (usually included in nginx:alpine)
 RUN apk add --no-cache gettext
 
-# Create startup script
+# Create startup script for debugging
 COPY <<EOF /docker-entrypoint.d/40-substitute-env.sh
 #!/bin/sh
 set -e
 
-# Set default values for environment variables if not provided
-export AUCTION_SERVICE_URL=\${AUCTION_SERVICE_URL:-http://localhost:8080}
-export USER_SERVICE_URL=\${USER_SERVICE_URL:-http://localhost:8080}
-export BIDDING_SERVICE_URL=\${BIDDING_SERVICE_URL:-http://localhost:8080}
-export AUTH_SERVICE_URL=\${AUTH_SERVICE_URL:-http://localhost:8080}
-export CATALOG_SERVICE_URL=\${CATALOG_SERVICE_URL:-http://localhost:8080}
+echo "=== Environment Variables ==="
+echo "AUCTION_SERVICE_URL: \${AUCTION_SERVICE_URL}"
+echo "USER_SERVICE_URL: \${USER_SERVICE_URL}"
+echo "BIDDING_SERVICE_URL: \${BIDDING_SERVICE_URL}"
+echo "AUTH_SERVICE_URL: \${AUTH_SERVICE_URL}"
+echo "CATALOG_SERVICE_URL: \${CATALOG_SERVICE_URL}"
+echo "================================"
 
-echo "Substituting environment variables in nginx config..."
-echo "AUCTION_SERVICE_URL: \$AUCTION_SERVICE_URL"
-echo "USER_SERVICE_URL: \$USER_SERVICE_URL"
-echo "BIDDING_SERVICE_URL: \$BIDDING_SERVICE_URL"
-echo "AUTH_SERVICE_URL: \$AUTH_SERVICE_URL"
-echo "CATALOG_SERVICE_URL: \$CATALOG_SERVICE_URL"
+# Check if template exists
+if [ -f "/etc/nginx/templates/default.conf.template" ]; then
+    echo "Template file found: /etc/nginx/templates/default.conf.template"
+else
+    echo "ERROR: Template file not found!"
+    exit 1
+fi
 
 # The nginx:alpine image automatically processes templates in /etc/nginx/templates/
 # and creates config files in /etc/nginx/conf.d/ with envsubst
@@ -52,4 +57,5 @@ RUN chmod +x /docker-entrypoint.d/40-substitute-env.sh
 
 EXPOSE 80
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+# Use the default nginx entrypoint which handles template processing
+CMD ["nginx", "-g", "daemon off;"]
