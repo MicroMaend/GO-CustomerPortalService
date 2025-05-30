@@ -2,6 +2,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IAuthService authService
 
 <PageTitle>Grøn & Olsen</PageTitle>
 
@@ -40,64 +41,31 @@
     public string Token { get; set; }
 }
 
-private async Task LoginUser()
-{
-    errorMessage = string.Empty;
-
-    try
+    private async Task LoginUser()
     {
-        // Brug din AuthHttpService i stedet for direkte HTTP kald
-        var token = await authService.LoginAsync(username, password);
+        errorMessage = string.Empty;
 
-        if (!string.IsNullOrEmpty(token))
+        try
         {
-            await localStorage.SetItemAsync("authToken", token);
-            NavigationManager.NavigateTo("/", forceLoad: true);
-            StateHasChanged();
-        }
-        else
-        {
-            errorMessage = "Invalid username or password.";
-        }
-    }
-    catch (Exception ex)
-    {
-        errorMessage = $"Login failed: {ex.Message}";
-    }
-}
-{
-    errorMessage = string.Empty;
+            // Brug din AuthHttpService i stedet for direkte HTTP kald
+            var token = await authService.LoginAsync(username, password);
 
-    try
-    {
-        var loginRequest = new { Username = username, Password = password };
-        var response = await Http.PostAsJsonAsync("api/auth/login", loginRequest);
-
-        if (response.IsSuccessStatusCode)
-        {
-            var tokenResponse = await response.Content.ReadFromJsonAsync<TokenResponse>();
-
-            if (tokenResponse != null && !string.IsNullOrEmpty(tokenResponse.Token))
+            if (!string.IsNullOrEmpty(token))
             {
-                await localStorage.SetItemAsync("authToken", tokenResponse.Token);
-                NavigationManager.NavigateTo("/",forceLoad: true);
+                await localStorage.SetItemAsync("authToken", token);
+                NavigationManager.NavigateTo("/", forceLoad: true);
                 StateHasChanged();
             }
             else
             {
-                errorMessage = "Login failed: Token was empty.";
+                errorMessage = "Invalid username or password.";
             }
         }
-        else
+        catch (Exception ex)
         {
-            errorMessage = "Invalid username or password.";
+            errorMessage = $"Login failed: {ex.Message}";
         }
     }
-    catch (Exception ex)
-    {
-        errorMessage = $"Login failed: {ex.Message}";
-    }
-}
 
 
     private void NavigateToCreateAccount()
