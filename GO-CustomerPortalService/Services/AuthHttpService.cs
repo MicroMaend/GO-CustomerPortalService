@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 public class AuthHttpService : IAuthService
 {
     private readonly HttpClient _http;
+    //const string baseUrl = "http://localhost:5004";
     private const string baseUrl = "/api/auth";
 
     public AuthHttpService(HttpClient http)
