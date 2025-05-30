@@ -46,6 +46,30 @@ private async Task LoginUser()
 
     try
     {
+        // Brug din AuthHttpService i stedet for direkte HTTP kald
+        var token = await authService.LoginAsync(username, password);
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            await localStorage.SetItemAsync("authToken", token);
+            NavigationManager.NavigateTo("/", forceLoad: true);
+            StateHasChanged();
+        }
+        else
+        {
+            errorMessage = "Invalid username or password.";
+        }
+    }
+    catch (Exception ex)
+    {
+        errorMessage = $"Login failed: {ex.Message}";
+    }
+}
+{
+    errorMessage = string.Empty;
+
+    try
+    {
         var loginRequest = new { Username = username, Password = password };
         var response = await Http.PostAsJsonAsync("api/auth/login", loginRequest);
 
