@@ -4,8 +4,8 @@ using GOCore;
 public class CatalogHttpService : ICatalogService
 {
     private readonly HttpClient _http;
-    //private const string baseUrl = "http://localhost:5005";
-    private const string baseUrl = "/api";
+    private const string baseUrl = "http://localhost:5005";
+    //private const string baseUrl = "/api";
 
     public CatalogHttpService(HttpClient http)
     {
